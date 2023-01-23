@@ -6,7 +6,7 @@
 #    By: rdel-agu <rdel-agu@student.42.fr>          +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2023/01/23 17:29:46 by rdel-agu          #+#    #+#              #
-#    Updated: 2023/01/23 17:37:11 by rdel-agu         ###   ########.fr        #
+#    Updated: 2023/01/23 18:02:03 by rdel-agu         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -20,10 +20,11 @@ RM = rm
 
 OBJ = $(SRC:.cpp=.o)    
 
-SRC =	srcs/main.hpp
+SRC =	srcs/main.cpp
 
 INCL =	includes/color.hpp\
-		includes/ft_irc.h
+		includes/ft_irc.h\
+		includes/ft_irc.hpp
 		
 all: $(NAME)
 

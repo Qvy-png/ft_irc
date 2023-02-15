@@ -6,7 +6,7 @@
 /*   By: rdel-agu <rdel-agu@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/01/23 17:48:31 by rdel-agu          #+#    #+#             */
-/*   Updated: 2023/01/23 17:57:48 by rdel-agu         ###   ########.fr       */
+/*   Updated: 2023/02/03 14:59:36 by rdel-agu         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -19,21 +19,21 @@ class Server {
 
 	private:
 
-		std::string _port;
+		int		 	_port;
 		std::string	_password;
 		
     public: 
 
 		Server( void );
-		Server( std::string, std::string );
+		Server( int port, std::string password);
 		Server( const Server& );
 		~Server( void );
 
 		Server&	operator=( const Server& );
     
-		void		setPort( std::string );
+		void		setPort( int );
 		void		setPassword( std::string );
-		std::string	getPort( void ) const;
+		int			getPort( void ) const;
 		std::string getPassword( void ) const;
 		
 };

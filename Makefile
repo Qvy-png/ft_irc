@@ -14,13 +14,14 @@ NAME = ircserv
 
 CC = c++
 
-CFLAGS = -Wall -Werror -Wextra -std=c++98
+CFLAGS = -Wall -Werror -Wextra -std=c++98 -g3
 
 RM = rm
 
 OBJ = $(SRC:.cpp=.o)    
 
-SRC =	srcs/main.cpp
+SRC =	srcs/main.cpp \
+		srcs/ft_irc.cpp
 
 INCL =	includes/color.hpp\
 		includes/ft_irc.h\

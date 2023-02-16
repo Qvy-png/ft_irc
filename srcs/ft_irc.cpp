@@ -16,12 +16,14 @@ Server::Server( void ) : _port(), _password() { }
 
 Server::Server( int port, std::string password ) : _port( port ), _password( password ) { return ; }
 
-Server::Server( const Server& ref ) { *this = ref;}
+Server::Server( const Server& ref ) { *this = ref; }
 
 Server::~Server( void ) { return ;}
 
-Server& Server::operator=( const Server& ref) {
-    
+Server& Server::operator=( const Server& ref ) {
+
+    if ( this == &ref )
+        return ( *this );
     *this = ref;
     return ( *this );
 }

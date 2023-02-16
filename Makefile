@@ -12,9 +12,9 @@
 
 NAME = ircserv
 
-CC = c++
+CXX = c++
 
-CFLAGS = -Wall -Werror -Wextra -std=c++98 -g3
+CFLAGS = -Wall -Werror -Wextra -std=c++98
 
 RM = rm
 
@@ -29,12 +29,12 @@ INCL =	includes/color.hpp\
 		
 all: $(NAME)
 
-%.o: %.c 
-	@$(CC) $(CFLAGS)  -I/usr/include -I INCL
+%.o: %.cpp
+	@$(CC) $(CFLAGS)  -I/usr/include -I INCL -c $< -o $@
 		
 $(NAME):  $(OBJ)
 	@echo " \033[0;31mCompiling $(NAME)...\033[0m"
-	@$(CC) $(CFLAGS) $(OBJ) -o $(NAME)
+	@$(CXX) $(CXXFLAGS) $(OBJ) -o $(NAME)
 	@echo " \033[0;32mSuccess\033[0m"
 	
 clean:

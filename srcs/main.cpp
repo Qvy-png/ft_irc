@@ -19,7 +19,7 @@ int	main( int argc, char **argv ) {
 
 	int			 		server_socket;
 	struct sockaddr_in	server_address;
-	int					port = std::atoi(argv[1]);
+	int					port = atoi(argv[1]);
 	std::string 		password = argv[2];
 
 	std::cout << BLU << port << CRESET " and " BLU << password << CRESET << std::endl;

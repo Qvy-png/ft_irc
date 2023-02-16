@@ -26,6 +26,7 @@
 #include <fcntl.h>
 #include <poll.h>
 #include <string.h>
+#include <stdlib.h>
 
 #include "color.hpp"
 #include "ft_irc.hpp"

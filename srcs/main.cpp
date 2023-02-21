@@ -6,7 +6,7 @@
 /*   By: rdel-agu <rdel-agu@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/01/23 17:36:41 by rdel-agu          #+#    #+#             */
-/*   Updated: 2023/02/21 14:13:39 by rdel-agu         ###   ########.fr       */
+/*   Updated: 2023/02/21 17:13:20 by rdel-agu         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -21,14 +21,16 @@ int	main( int argc, char **argv ) {
 	int			 		server_socket;
 	struct sockaddr_in	server_address;
 	int					addrlen = sizeof( server_address );
-	int					port = atoi(argv[1]);
-	std::string 		password = argv[2];
 
 	// PARSING
 
-	std::cout << BLU << port << CRESET " and " BLU << password << CRESET << std::endl;
 	if ( argc != 3 )
 		return ( printErr( RED "Wrong input, please use the following form : ./ircserv <port> <password>\n" CRESET ) );
+
+	int					port = atoi(argv[1]);
+	std::string 		password = argv[2];
+	
+	std::cout << BLU << port << CRESET " and " BLU << password << CRESET << std::endl;
 	
 	// TCP SOCKET CREATION
 
@@ -54,7 +56,7 @@ int	main( int argc, char **argv ) {
 	struct pollfd		pfds[MAX_CLIENTS];
 	std::vector<int>	clients;
 	std::string			welcome = "Welcome to the IRC server!\n";
-	char				buffer[4096];
+	char				buffer[1025];
 
 	pfds[0].fd = server_socket;
 	pfds[0].events = POLLIN;
@@ -78,25 +80,28 @@ int	main( int argc, char **argv ) {
 		send(current_client, welcome.c_str(), welcome.size(), 0 );
 		
 		for ( int i = 1; i <= num_open_fds; i++ ) {
-			
+			 
+			// std::cout << "e" << std::endl;
 			if ( pfds[i].revents & POLLIN ) {
 
-				int valread = read( pfds[i].fd, buffer, 1024 );
-                std::cout << buffer << std::endl;
-                if (valread == 0) {
-
-                    close( pfds[i].fd );
-                    clients.erase( clients.begin() + i - 1 );
-                    pfds[i] = pfds[num_open_fds];
-                    num_open_fds--;
-                } else {
-					
-                    for ( int j = 0; j < num_open_fds; j++ ) {
-                        if (clients[j] != pfds[i].fd) {
-                            send( clients[j], buffer, strlen(buffer), 0 );
-                        }
-                    }
-                }
+				int valread = recv( pfds[i].fd, &buffer, 1024, 0 );
+				std::cout << buffer << std::endl;
+				
+                if (valread != 0) {
+				// 	// DELETING CLIENT IF NOT RESPONDING / LEAVING
+                //     close( pfds[i].fd );
+                //     clients.erase( clients.begin() + i - 1 );
+                //     pfds[i] = pfds[num_open_fds];
+                //     num_open_fds--;
+				// 	std::cout << RED "penis" CRESET << std::endl;	
+                // } 
+				// else {
+				// for ( int j = 0; j < num_open_fds; j++ ) {
+				//     if (clients[j] != pfds[i].fd) {
+					send( clients[i], buffer, strlen(buffer), 0 );
+					// }
+				
+				}
 			}
 		}
 	}

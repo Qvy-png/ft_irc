@@ -6,7 +6,7 @@
 /*   By: rdel-agu <rdel-agu@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/01/23 17:37:21 by rdel-agu          #+#    #+#             */
-/*   Updated: 2023/02/22 14:43:35 by rdel-agu         ###   ########.fr       */
+/*   Updated: 2023/02/22 15:54:50 by rdel-agu         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -31,6 +31,7 @@
 
 #include "color.hpp"
 #include "ft_irc.hpp"
+#include "client.hpp"
 
 #define SERVERNAME "irc_dta"
 #define SERVER "127.0.0.1" 

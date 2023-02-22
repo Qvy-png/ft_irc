@@ -6,7 +6,7 @@
 /*   By: rdel-agu <rdel-agu@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/01/23 17:36:41 by rdel-agu          #+#    #+#             */
-/*   Updated: 2023/02/22 14:45:06 by rdel-agu         ###   ########.fr       */
+/*   Updated: 2023/02/22 20:05:39 by rdel-agu         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -22,6 +22,8 @@ int	send_msg(std::string msg, int sfd)
 	res = send(sfd, msg.c_str(), msg.length(), MSG_CONFIRM);
 	return (res);
 }
+
+
 
 int	main( int argc, char **argv ) {
 
@@ -59,12 +61,17 @@ int	main( int argc, char **argv ) {
 
 	// TREATMENT
 
-	int					num_open_fds = 0, current_client;
+	int					num_open_fds = 0, current_client = -1;
 	struct pollfd		pfds[MAX_CLIENTS];
 	std::vector<int>	clients;
+	// std::string			buffer;
+	char				buffer[1025];
+	bzero(buffer, 1025);
+	
+	std::vector<Client*> client;
+	
 	std::string			welcome = "Welcome to the IRC server!\n";
-	// char				buffer[1025];
-	std::string			buffer, localhost, nick;
+	std::string			localhost, nick;
 	localhost = "localhost";
 	nick = "nick";
 
@@ -73,7 +80,6 @@ int	main( int argc, char **argv ) {
 	
 	while ( true ) {
 		
-		// std::cout << "bonjour" << std::endl;
 		int	poll_count = poll( pfds, num_open_fds + 1, -1);
 		if( poll_count == -1 )
 			return ( printErr( "Error creating Poll" ) );
@@ -81,50 +87,64 @@ int	main( int argc, char **argv ) {
 
 			if ( ( current_client = accept( server_socket, ( struct sockaddr * ) &server_address, ( socklen_t * ) &addrlen ) ) < 0 )
 				return ( printErr( "Can't accept" ) ); 
+			else 
+			{
+				client.push_back(new Client(current_client));
+				num_open_fds++;
+				clients.push_back( current_client );
+				pfds[num_open_fds].fd = current_client;
+				pfds[num_open_fds].events = POLLIN;
+			}
 		}
 		
-		num_open_fds++;
-		clients.push_back( current_client );
-		pfds[num_open_fds].fd = current_client;
-		pfds[num_open_fds].events = POLLIN;
-		send(current_client, welcome.c_str(), welcome.size(), 0 );
+		// send(current_client, welcome.c_str(), welcome.size(), 0 );
 		
 		for ( int i = 1; i <= num_open_fds; i++ ) {
-			 
-			// std::cout << "e" << std::endl;
-			if ( pfds[i].revents & POLLIN ) {
-
-
+			 std::cout << RED"bonjour : "CRESET << num_open_fds << std::endl;
+			if (pfds[i].revents & POLLIN ) {
+				
 				// char localhost[10] = "localhost";
 				// char nick[5] = "nick";
 				int valread = recv( pfds[i].fd, &buffer, 1024, 0 );
-				// std::cout << buffer << std::endl;
+				std::cout << "je suis le client " << i << std::endl;
+				std::cout << buffer << std::endl;
 				
-                if (valread != 0) {
-				// 	// DELETING CLIENT IF NOT RESPONDING / LEAVING
-                //     close( pfds[i].fd );
-                //     clients.erase( clients.begin() + i - 1 );
-                //     pfds[i] = pfds[num_open_fds];
-                //     num_open_fds--;
-				// 	std::cout << RED "penis" CRESET << std::endl;	
-                // } 
+				client[i - 1]->setBuffer( buffer );			 
+
+                if (valread >= 0 ) {
+					// std::cout << RED "user gone" CRESET << std::endl, num_open_fds--;
+					// std::cout << client[i].getBuffer() << std::endl;
+					// DELETING CLIENT IF NOT RESPONDING / LEAVING
+                    // close( pfds[i].fd );
+                    // clients.erase( clients.begin() + 3i - 1 );
+                    // pfds[i] = pfds[num_open_fds];
+                    // num_open_fds--;
+					// std::cout << RED "penis" CRESET << std::endl;
+					// std::cout << BLU << clients[i - 1] << CRESET << std::endl;
+					// std::cout << send_msg(ERR_PASSWDMISMATCH(localhost, nick), clients[i - 1]) << std::endl;
+                } 
 				// else {
 				// for ( int j = 0; j < num_open_fds; j++ ) {
 				//     if (clients[j] != pfds[i].fd) {
 					// send( clients[i], buffer, strlen(buffer), 0 );
 					
-					// send( clients[i], RPL_WELCOME( localhost, nick ).c_str(), RPL_WELCOME( localhost, nick ).length(), 0 );
-					send_msg(RPL_WELCOME( localhost, nick ), i );
+					
+					// HANDSHAKE
+					send( clients[i], RPL_WELCOME( localhost, nick ).c_str(), RPL_WELCOME( localhost, nick ).length(), 0 );
+					send_msg(RPL_WELCOME( localhost, nick ), clients[i - 1] );
 					std::cout << RPL_WELCOME( localhost, nick ) << std::endl;
-					send_msg(RPL_YOURHOST( localhost ), i );
+					send_msg(RPL_YOURHOST( localhost ), clients[i - 1] );
 					std::cout << RPL_YOURHOST( localhost ) << std::endl;
-					send_msg(RPL_CREATED( localhost ), i );
+					send_msg(RPL_CREATED( localhost ), clients[i - 1] );
 					std::cout << RPL_CREATED( localhost ) << std::endl;
-					send_msg(RPL_MYINFO( localhost ), i );
+					send_msg(RPL_MYINFO( localhost ), clients[i - 1] );
 					std::cout << RPL_MYINFO( localhost ) << std::endl;
+
+					// TEST
+					
 					// }
 				
-				}
+				bzero(buffer, 1025);
 			}
 		}
 	}

@@ -6,7 +6,7 @@
 /*   By: rdel-agu <rdel-agu@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/01/23 17:36:41 by rdel-agu          #+#    #+#             */
-/*   Updated: 2023/02/21 17:13:20 by rdel-agu         ###   ########.fr       */
+/*   Updated: 2023/02/22 14:45:06 by rdel-agu         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -15,6 +15,13 @@
 #define MAX_CLIENTS 128
 
 int		printErr( std::string str ) { std::cerr << REDHB << str << CRESET; return ( 1 ); }
+
+int	send_msg(std::string msg, int sfd)
+{
+	int res;
+	res = send(sfd, msg.c_str(), msg.length(), MSG_CONFIRM);
+	return (res);
+}
 
 int	main( int argc, char **argv ) {
 
@@ -56,7 +63,10 @@ int	main( int argc, char **argv ) {
 	struct pollfd		pfds[MAX_CLIENTS];
 	std::vector<int>	clients;
 	std::string			welcome = "Welcome to the IRC server!\n";
-	char				buffer[1025];
+	// char				buffer[1025];
+	std::string			buffer, localhost, nick;
+	localhost = "localhost";
+	nick = "nick";
 
 	pfds[0].fd = server_socket;
 	pfds[0].events = POLLIN;
@@ -84,8 +94,11 @@ int	main( int argc, char **argv ) {
 			// std::cout << "e" << std::endl;
 			if ( pfds[i].revents & POLLIN ) {
 
+
+				// char localhost[10] = "localhost";
+				// char nick[5] = "nick";
 				int valread = recv( pfds[i].fd, &buffer, 1024, 0 );
-				std::cout << buffer << std::endl;
+				// std::cout << buffer << std::endl;
 				
                 if (valread != 0) {
 				// 	// DELETING CLIENT IF NOT RESPONDING / LEAVING
@@ -98,7 +111,17 @@ int	main( int argc, char **argv ) {
 				// else {
 				// for ( int j = 0; j < num_open_fds; j++ ) {
 				//     if (clients[j] != pfds[i].fd) {
-					send( clients[i], buffer, strlen(buffer), 0 );
+					// send( clients[i], buffer, strlen(buffer), 0 );
+					
+					// send( clients[i], RPL_WELCOME( localhost, nick ).c_str(), RPL_WELCOME( localhost, nick ).length(), 0 );
+					send_msg(RPL_WELCOME( localhost, nick ), i );
+					std::cout << RPL_WELCOME( localhost, nick ) << std::endl;
+					send_msg(RPL_YOURHOST( localhost ), i );
+					std::cout << RPL_YOURHOST( localhost ) << std::endl;
+					send_msg(RPL_CREATED( localhost ), i );
+					std::cout << RPL_CREATED( localhost ) << std::endl;
+					send_msg(RPL_MYINFO( localhost ), i );
+					std::cout << RPL_MYINFO( localhost ) << std::endl;
 					// }
 				
 				}

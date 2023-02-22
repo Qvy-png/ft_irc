@@ -6,7 +6,7 @@
 /*   By: rdel-agu <rdel-agu@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/01/23 17:37:21 by rdel-agu          #+#    #+#             */
-/*   Updated: 2023/02/22 14:17:51 by rdel-agu         ###   ########.fr       */
+/*   Updated: 2023/02/22 14:43:35 by rdel-agu         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -31,6 +31,13 @@
 
 #include "color.hpp"
 #include "ft_irc.hpp"
+
+#define SERVERNAME "irc_dta"
+#define SERVER "127.0.0.1" 
+#define VERSION "1.69"
+#define DATE "Mon Aug 25 16:57:33 2022"
+#define DEFAULT_NAME "toto"
+#define TIME_LIMIT 60
 
 #define RPL_WELCOME(localhost, nick) (":" + localhost + " 001 " + nick + " :Welcome to the Internet Relay Network " + localhost + "\r\n")
 

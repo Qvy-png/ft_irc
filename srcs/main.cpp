@@ -6,7 +6,7 @@
 /*   By: rdel-agu <rdel-agu@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/01/23 17:36:41 by rdel-agu          #+#    #+#             */
-/*   Updated: 2023/02/22 20:05:39 by rdel-agu         ###   ########.fr       */
+/*   Updated: 2023/02/23 17:18:57 by rdel-agu         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -23,7 +23,23 @@ int	send_msg(std::string msg, int sfd)
 	return (res);
 }
 
+int	checkOnlyNum( std::string str ) {
 
+	if ( str.empty() )
+		return ( -1 );
+	else {
+
+		int i = 0;
+
+		while ( str[i] ) {
+		
+			if ( str[i] > '9' || str[i] < '0' )
+				return ( -1 );
+			i++;
+		}
+	}
+	return ( 0 );
+}
 
 int	main( int argc, char **argv ) {
 
@@ -31,15 +47,18 @@ int	main( int argc, char **argv ) {
 	struct sockaddr_in	server_address;
 	int					addrlen = sizeof( server_address );
 
-	// PARSING
-
 	if ( argc != 3 )
-		return ( printErr( RED "Wrong input, please use the following form : ./ircserv <port> <password>\n" CRESET ) );
-
+		return ( printErr( "Wrong input, please use the following form : ./ircserv <int>port <string>password\n" ) );
+	if ( checkOnlyNum( argv[1] ) == -1 )
+		return ( printErr( "Wrong port format, please make sure only numbers\n" ) );
+	
 	int					port = atoi(argv[1]);
 	std::string 		password = argv[2];
 	
-	std::cout << BLU << port << CRESET " and " BLU << password << CRESET << std::endl;
+	if ( port < 1 || port > 65535 )
+		return ( printErr( "Port not within range, please input a port within [1 - 65535]\n" ) );
+	
+	std::cout << "Port : " BLU << port << CRESET " and Password : " BLU << password << CRESET << std::endl;
 	
 	// TCP SOCKET CREATION
 
@@ -59,12 +78,10 @@ int	main( int argc, char **argv ) {
 	if ( listen( server_socket, 10 ) < 0 )
 		return ( printErr( "Error listening to socket" ) );
 
-	// TREATMENT
 
 	int					num_open_fds = 0, current_client = -1;
 	struct pollfd		pfds[MAX_CLIENTS];
 	std::vector<int>	clients;
-	// std::string			buffer;
 	char				buffer[1025];
 	bzero(buffer, 1025);
 	
@@ -87,8 +104,8 @@ int	main( int argc, char **argv ) {
 
 			if ( ( current_client = accept( server_socket, ( struct sockaddr * ) &server_address, ( socklen_t * ) &addrlen ) ) < 0 )
 				return ( printErr( "Can't accept" ) ); 
-			else 
-			{
+			else {
+
 				client.push_back(new Client(current_client));
 				num_open_fds++;
 				clients.push_back( current_client );
@@ -96,53 +113,38 @@ int	main( int argc, char **argv ) {
 				pfds[num_open_fds].events = POLLIN;
 			}
 		}
-		
-		// send(current_client, welcome.c_str(), welcome.size(), 0 );
-		
 		for ( int i = 1; i <= num_open_fds; i++ ) {
+
 			 std::cout << RED"bonjour : "CRESET << num_open_fds << std::endl;
 			if (pfds[i].revents & POLLIN ) {
 				
-				// char localhost[10] = "localhost";
-				// char nick[5] = "nick";
 				int valread = recv( pfds[i].fd, &buffer, 1024, 0 );
 				std::cout << "je suis le client " << i << std::endl;
 				std::cout << buffer << std::endl;
 				
 				client[i - 1]->setBuffer( buffer );			 
 
-                if (valread >= 0 ) {
-					// std::cout << RED "user gone" CRESET << std::endl, num_open_fds--;
+                if (valread < 0 ) {
+
+					std::cout << RED "user gone" CRESET << std::endl, num_open_fds--;
 					// std::cout << client[i].getBuffer() << std::endl;
 					// DELETING CLIENT IF NOT RESPONDING / LEAVING
-                    // close( pfds[i].fd );
-                    // clients.erase( clients.begin() + 3i - 1 );
-                    // pfds[i] = pfds[num_open_fds];
-                    // num_open_fds--;
-					// std::cout << RED "penis" CRESET << std::endl;
+                    close( pfds[i].fd );
+                    clients.erase( clients.begin() + i - 1 );
+                    pfds[i] = pfds[num_open_fds];
+                    num_open_fds--;
 					// std::cout << BLU << clients[i - 1] << CRESET << std::endl;
 					// std::cout << send_msg(ERR_PASSWDMISMATCH(localhost, nick), clients[i - 1]) << std::endl;
+					std::cout << BLU "Je ne reçois plus rien !" CRESET << std::endl;
                 } 
-				// else {
-				// for ( int j = 0; j < num_open_fds; j++ ) {
-				//     if (clients[j] != pfds[i].fd) {
-					// send( clients[i], buffer, strlen(buffer), 0 );
-					
-					
+				else {
+						
 					// HANDSHAKE
-					send( clients[i], RPL_WELCOME( localhost, nick ).c_str(), RPL_WELCOME( localhost, nick ).length(), 0 );
-					send_msg(RPL_WELCOME( localhost, nick ), clients[i - 1] );
-					std::cout << RPL_WELCOME( localhost, nick ) << std::endl;
-					send_msg(RPL_YOURHOST( localhost ), clients[i - 1] );
-					std::cout << RPL_YOURHOST( localhost ) << std::endl;
-					send_msg(RPL_CREATED( localhost ), clients[i - 1] );
-					std::cout << RPL_CREATED( localhost ) << std::endl;
-					send_msg(RPL_MYINFO( localhost ), clients[i - 1] );
-					std::cout << RPL_MYINFO( localhost ) << std::endl;
-
-					// TEST
-					
-					// }
+						// send_msg(RPL_WELCOME( localhost, nick ), clients[ i - 1 ] );
+						// send_msg(RPL_YOURHOST( localhost ), clients[ i - 1 ] );
+						// send_msg(RPL_CREATED( localhost ), clients[ i - 1 ] );
+						// send_msg(RPL_MYINFO( localhost ), clients[ i - 1 ] );
+				}
 				
 				bzero(buffer, 1025);
 			}

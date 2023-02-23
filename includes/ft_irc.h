@@ -6,12 +6,14 @@
 /*   By: rdel-agu <rdel-agu@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/01/23 17:37:21 by rdel-agu          #+#    #+#             */
-/*   Updated: 2023/02/22 15:54:50 by rdel-agu         ###   ########.fr       */
+/*   Updated: 2023/02/23 15:10:17 by rdel-agu         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #ifndef FT_IRC_H
 # define FT_IRC_H
+
+// libraries
 
 #include <sys/socket.h>
 #include <netinet/in.h>
@@ -29,16 +31,20 @@
 #include <stdlib.h>
 #include <vector>
 
+// ~/includes/
+
 #include "color.hpp"
 #include "ft_irc.hpp"
 #include "client.hpp"
 
-#define SERVERNAME "irc_dta"
+#define SERVERNAME "ft_irc"
 #define SERVER "127.0.0.1" 
-#define VERSION "1.69"
-#define DATE "Mon Aug 25 16:57:33 2022"
-#define DEFAULT_NAME "toto"
+#define VERSION "69.420"
+#define DATE "Mon Feb 23 14:02:33 2023"
+#define DEFAULT_NAME "pouet"
 #define TIME_LIMIT 60
+
+// macros
 
 #define RPL_WELCOME(localhost, nick) (":" + localhost + " 001 " + nick + " :Welcome to the Internet Relay Network " + localhost + "\r\n")
 
@@ -46,7 +52,7 @@
 
 #define RPL_CREATED(localhost) (":" + localhost + " 003 :This server was created " DATE "\r\n")
 
-#define RPL_MYINFO(localhost) (":" + localhost + " 004 :" SERVERNAME " " VERSION " aiwroOs OovaimnpsrtklbeI\r\n")
+#define RPL_MYINFO(localhost) (":" + localhost + " 004 :" SERVERNAME " " VERSION ", group La Team \r\n")
 
 #define QUIT(localhost, msg) (localhost + " QUIT :" + msg + "\r\n")
 

@@ -6,7 +6,7 @@
 /*   By: rdel-agu <rdel-agu@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/01/23 17:36:41 by rdel-agu          #+#    #+#             */
-/*   Updated: 2023/02/23 17:18:57 by rdel-agu         ###   ########.fr       */
+/*   Updated: 2023/02/27 18:13:06 by rdel-agu         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -40,6 +40,28 @@ int	checkOnlyNum( std::string str ) {
 	}
 	return ( 0 );
 }
+
+int hasReturn( std::string str ) {
+
+	if ( str.empty() )
+		return ( -1 );
+	else {
+	
+		int i = 0;
+		int j = 0;
+		
+		while ( str[i] ) {
+
+			if ( str[i++] == '\r')
+				j++;
+		}
+		if ( j <= 0 )
+			return ( -1 );
+		else
+			return ( 0 );
+	}
+}
+
 
 int	main( int argc, char **argv ) {
 
@@ -110,7 +132,7 @@ int	main( int argc, char **argv ) {
 				num_open_fds++;
 				clients.push_back( current_client );
 				pfds[num_open_fds].fd = current_client;
-				pfds[num_open_fds].events = POLLIN;
+				pfds[num_open_fds].events = POLLIN; 
 			}
 		}
 		for ( int i = 1; i <= num_open_fds; i++ ) {
@@ -144,6 +166,22 @@ int	main( int argc, char **argv ) {
 						// send_msg(RPL_YOURHOST( localhost ), clients[ i - 1 ] );
 						// send_msg(RPL_CREATED( localhost ), clients[ i - 1 ] );
 						// send_msg(RPL_MYINFO( localhost ), clients[ i - 1 ] );
+
+					if ( hasReturn(client[i - 1]->getBuffer() ) == 0 ) {
+						
+						std::stringstream 	stream;
+						std::stringstream	buffSplit;
+						std::string			tmp;
+						
+						stream << client[i - 1]->getBuffer();
+						std::getline( stream, tmp, '\r' );
+						std::cout << tmp << std::endl;
+						buffSplit << tmp;
+						
+						// std::cout << BLU "Hello" CRESET << std::endl;
+
+					}
+						
 				}
 				
 				bzero(buffer, 1025);

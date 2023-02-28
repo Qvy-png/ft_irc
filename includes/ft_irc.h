@@ -6,7 +6,7 @@
 /*   By: rdel-agu <rdel-agu@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/01/23 17:37:21 by rdel-agu          #+#    #+#             */
-/*   Updated: 2023/02/27 18:04:59 by rdel-agu         ###   ########.fr       */
+/*   Updated: 2023/02/28 17:13:56 by rdel-agu         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -42,7 +42,7 @@
 #define SERVERNAME "ft_irc"
 #define SERVER "127.0.0.1" 
 #define VERSION "69.420"
-#define DATE "Mon Feb 23 14:02:33 2023"
+#define DATE "Mon Feb 31 25:02:33 2023"
 #define DEFAULT_NAME "pouet"
 #define TIME_LIMIT 60
 

@@ -6,7 +6,7 @@
 /*   By: rdel-agu <rdel-agu@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/01/23 17:36:41 by rdel-agu          #+#    #+#             */
-/*   Updated: 2023/02/27 18:13:06 by rdel-agu         ###   ########.fr       */
+/*   Updated: 2023/02/28 17:45:35 by rdel-agu         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -172,11 +172,15 @@ int	main( int argc, char **argv ) {
 						std::stringstream 	stream;
 						std::stringstream	buffSplit;
 						std::string			tmp;
+						std::string			tmp2;
 						
 						stream << client[i - 1]->getBuffer();
 						std::getline( stream, tmp, '\r' );
 						std::cout << tmp << std::endl;
-						buffSplit << tmp;
+						// buffSplit << tmp;
+						// buffSplit >> tmp2;
+						// std::cout << tmp2 << std::endl;
+						
 						
 						// std::cout << BLU "Hello" CRESET << std::endl;
 

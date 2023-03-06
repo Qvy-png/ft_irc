@@ -6,7 +6,7 @@
 /*   By: rdel-agu <rdel-agu@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/01/23 17:37:21 by rdel-agu          #+#    #+#             */
-/*   Updated: 2023/02/28 17:13:56 by rdel-agu         ###   ########.fr       */
+/*   Updated: 2023/03/06 13:56:59 by rdel-agu         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -32,6 +32,7 @@
 #include <vector>
 #include <sstream>
 #include <string>
+#include <algorithm>
 
 // ~/includes/
 

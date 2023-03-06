@@ -6,7 +6,7 @@
 /*   By: rdel-agu <rdel-agu@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/01/23 17:36:41 by rdel-agu          #+#    #+#             */
-/*   Updated: 2023/02/28 17:45:35 by rdel-agu         ###   ########.fr       */
+/*   Updated: 2023/03/06 14:37:37 by rdel-agu         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -105,6 +105,7 @@ int	main( int argc, char **argv ) {
 	struct pollfd		pfds[MAX_CLIENTS];
 	std::vector<int>	clients;
 	char				buffer[1025];
+	
 	bzero(buffer, 1025);
 	
 	std::vector<Client*> client;
@@ -137,11 +138,11 @@ int	main( int argc, char **argv ) {
 		}
 		for ( int i = 1; i <= num_open_fds; i++ ) {
 
-			 std::cout << RED"bonjour : "CRESET << num_open_fds << std::endl;
+			std::cout << RED"bonjour : "CRESET << num_open_fds << std::endl;
 			if (pfds[i].revents & POLLIN ) {
 				
 				int valread = recv( pfds[i].fd, &buffer, 1024, 0 );
-				std::cout << "je suis le client " << i << std::endl;
+				std::cout << YEL "je suis le client " CRESET << i << std::endl;
 				std::cout << buffer << std::endl;
 				
 				client[i - 1]->setBuffer( buffer );			 
@@ -158,38 +159,73 @@ int	main( int argc, char **argv ) {
 					// std::cout << BLU << clients[i - 1] << CRESET << std::endl;
 					// std::cout << send_msg(ERR_PASSWDMISMATCH(localhost, nick), clients[i - 1]) << std::endl;
 					std::cout << BLU "Je ne reçois plus rien !" CRESET << std::endl;
-                } 
-				else {
+                }
+			}
+				// else {
 						
 					// HANDSHAKE
 						// send_msg(RPL_WELCOME( localhost, nick ), clients[ i - 1 ] );
 						// send_msg(RPL_YOURHOST( localhost ), clients[ i - 1 ] );
 						// send_msg(RPL_CREATED( localhost ), clients[ i - 1 ] );
 						// send_msg(RPL_MYINFO( localhost ), clients[ i - 1 ] );
+			
+			std::cout << "buffer du client : " << i << std::endl << MAG << client[i - 1]->getBuffer() << CRESET <<std::endl;
+			// if ( hasReturn(client[i - 1]->getBuffer() ) == 0 ) {
 
-					if ( hasReturn(client[i - 1]->getBuffer() ) == 0 ) {
-						
-						std::stringstream 	stream;
-						std::stringstream	buffSplit;
-						std::string			tmp;
-						std::string			tmp2;
-						
-						stream << client[i - 1]->getBuffer();
-						std::getline( stream, tmp, '\r' );
-						std::cout << tmp << std::endl;
-						// buffSplit << tmp;
-						// buffSplit >> tmp2;
-						// std::cout << tmp2 << std::endl;
-						
-						
-						// std::cout << BLU "Hello" CRESET << std::endl;
+				std::stringstream	buffSplit;
+				std::string 		firstCommand;
+				std::string 		remainingCommands;
+				std::string			tmp;
+				std::string			tmp2;
+				
+				// stream << client[i - 1]->getBuffer();
+				// std::getline( stream, tmp, '\r' );
+				// std::cout << tmp << std::endl;
+				buffSplit << tmp;
+				buffSplit >> tmp2;
+				std::cout << tmp2 << std::endl;
+				
+				std::string buffer1 = client[i - 1]->getBuffer();
+				std::stringstream stream(buffer1);
 
+				std::getline(stream, firstCommand, '\r');
+
+				if (!firstCommand.empty()) {
+
+					firstCommand.erase(std::remove(firstCommand.begin(), firstCommand.end(), '\r'), firstCommand.end());
+
+					// Split the first command into words and process as needed
+					std::stringstream buffSplit(firstCommand);
+					std::string tmp;
+					std::string tmp2;
+
+					buffSplit >> tmp;
+					std::cout << "First word: " << tmp << std::endl;
+
+					buffSplit >> tmp2;
+					std::cout << "Second word: " << tmp2 << std::endl;
+
+					// Put the remaining commands back into the buffer
+					if (stream.peek() == '\r') {
+						stream.ignore();
 					}
-						
+					std::getline(stream, remainingCommands, '\0');
+					std::cout << GRN << remainingCommands << CRESET << std::endl;
+
+					// Turning the string into a usable char* variable to set in setBuffer
+					char* remainingCommandsChar = new char[remainingCommands.size() + 1];
+					std::copy(remainingCommands.begin(), remainingCommands.end(), remainingCommandsChar);
+					remainingCommandsChar[remainingCommands.size()] = '\0';
+					client[i - 1]->setBuffer(remainingCommandsChar);
+					delete[] remainingCommandsChar;
 				}
 				
-				bzero(buffer, 1025);
-			}
+				// std::cout << BLU "Hello" CRESET << std::endl;
+
+			// }
+				
+		// }
+		bzero(buffer, 1025);
 		}
 	}
 	return ( 0 );

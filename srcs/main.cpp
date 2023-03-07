@@ -6,7 +6,7 @@
 /*   By: rdel-agu <rdel-agu@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/01/23 17:36:41 by rdel-agu          #+#    #+#             */
-/*   Updated: 2023/03/06 14:37:37 by rdel-agu         ###   ########.fr       */
+/*   Updated: 2023/03/07 16:42:23 by rdel-agu         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -118,9 +118,13 @@ int	main( int argc, char **argv ) {
 	pfds[0].fd = server_socket;
 	pfds[0].events = POLLIN;
 	
+	int i = 1;
 	while ( true ) {
 		
-		int	poll_count = poll( pfds, num_open_fds + 1, -1);
+		if (i > num_open_fds) {
+			i = 1;
+		}
+		int	poll_count = poll( pfds, num_open_fds + 1, 100);
 		if( poll_count == -1 )
 			return ( printErr( "Error creating Poll" ) );
 		if (pfds[0].revents & POLLIN ) {
@@ -134,99 +138,145 @@ int	main( int argc, char **argv ) {
 				clients.push_back( current_client );
 				pfds[num_open_fds].fd = current_client;
 				pfds[num_open_fds].events = POLLIN; 
+				std::cout << "Accepted client #" << num_open_fds << std::endl;
 			}
 		}
-		for ( int i = 1; i <= num_open_fds; i++ ) {
-
-			std::cout << RED"bonjour : "CRESET << num_open_fds << std::endl;
-			if (pfds[i].revents & POLLIN ) {
+		if (pfds[i].revents & POLLIN ) {
 				
-				int valread = recv( pfds[i].fd, &buffer, 1024, 0 );
+			int valread = recv( pfds[i].fd, &buffer, 1024, 0 );
+			if (valread < 0)
+				std::cerr << "Error reading from client #" << i << std::endl;
+			else {
+				
 				std::cout << YEL "je suis le client " CRESET << i << std::endl;
 				std::cout << buffer << std::endl;
-				
-				client[i - 1]->setBuffer( buffer );			 
-
-                if (valread < 0 ) {
-
-					std::cout << RED "user gone" CRESET << std::endl, num_open_fds--;
-					// std::cout << client[i].getBuffer() << std::endl;
-					// DELETING CLIENT IF NOT RESPONDING / LEAVING
-                    close( pfds[i].fd );
-                    clients.erase( clients.begin() + i - 1 );
-                    pfds[i] = pfds[num_open_fds];
-                    num_open_fds--;
-					// std::cout << BLU << clients[i - 1] << CRESET << std::endl;
-					// std::cout << send_msg(ERR_PASSWDMISMATCH(localhost, nick), clients[i - 1]) << std::endl;
-					std::cout << BLU "Je ne reçois plus rien !" CRESET << std::endl;
-                }
+				client[i - 1]->setBuffer( buffer );
 			}
-				// else {
-						
-					// HANDSHAKE
-						// send_msg(RPL_WELCOME( localhost, nick ), clients[ i - 1 ] );
-						// send_msg(RPL_YOURHOST( localhost ), clients[ i - 1 ] );
-						// send_msg(RPL_CREATED( localhost ), clients[ i - 1 ] );
-						// send_msg(RPL_MYINFO( localhost ), clients[ i - 1 ] );
-			
-			std::cout << "buffer du client : " << i << std::endl << MAG << client[i - 1]->getBuffer() << CRESET <<std::endl;
-			// if ( hasReturn(client[i - 1]->getBuffer() ) == 0 ) {
-
-				std::stringstream	buffSplit;
-				std::string 		firstCommand;
-				std::string 		remainingCommands;
-				std::string			tmp;
-				std::string			tmp2;
-				
-				// stream << client[i - 1]->getBuffer();
-				// std::getline( stream, tmp, '\r' );
-				// std::cout << tmp << std::endl;
-				buffSplit << tmp;
-				buffSplit >> tmp2;
-				std::cout << tmp2 << std::endl;
-				
-				std::string buffer1 = client[i - 1]->getBuffer();
-				std::stringstream stream(buffer1);
-
-				std::getline(stream, firstCommand, '\r');
-
-				if (!firstCommand.empty()) {
-
-					firstCommand.erase(std::remove(firstCommand.begin(), firstCommand.end(), '\r'), firstCommand.end());
-
-					// Split the first command into words and process as needed
-					std::stringstream buffSplit(firstCommand);
-					std::string tmp;
-					std::string tmp2;
-
-					buffSplit >> tmp;
-					std::cout << "First word: " << tmp << std::endl;
-
-					buffSplit >> tmp2;
-					std::cout << "Second word: " << tmp2 << std::endl;
-
-					// Put the remaining commands back into the buffer
-					if (stream.peek() == '\r') {
-						stream.ignore();
-					}
-					std::getline(stream, remainingCommands, '\0');
-					std::cout << GRN << remainingCommands << CRESET << std::endl;
-
-					// Turning the string into a usable char* variable to set in setBuffer
-					char* remainingCommandsChar = new char[remainingCommands.size() + 1];
-					std::copy(remainingCommands.begin(), remainingCommands.end(), remainingCommandsChar);
-					remainingCommandsChar[remainingCommands.size()] = '\0';
-					client[i - 1]->setBuffer(remainingCommandsChar);
-					delete[] remainingCommandsChar;
-				}
-				
-				// std::cout << BLU "Hello" CRESET << std::endl;
-
-			// }
-				
-		// }
-		bzero(buffer, 1025);
 		}
+		if (i - 1 < client.size() && !client[i - 1]->getBuffer().empty()) {
+
+			std::string buffer = client[i - 1]->getBuffer();
+			size_t pos = buffer.find('\r');
+			if (pos != std::string::npos) {
+				std::string command = buffer.substr(0, pos);
+				std::cout << "Command: " << command << std::endl;
+				buffer.erase(0, pos + 1);
+				std::cout << "Found \\r in client " << i << "'s buffer." << std::endl;
+			}
+		}
+		i++;
 	}
+
+	
+	// while ( true ) {
+		
+	// 	int	poll_count = poll( pfds, num_open_fds + 1, -1);
+	// 	if( poll_count == -1 )
+	// 		return ( printErr( "Error creating Poll" ) );
+	// 	if (pfds[0].revents & POLLIN ) {
+
+	// 		if ( ( current_client = accept( server_socket, ( struct sockaddr * ) &server_address, ( socklen_t * ) &addrlen ) ) < 0 )
+	// 			return ( printErr( "Can't accept" ) ); 
+	// 		else {
+
+	// 			client.push_back(new Client(current_client));
+	// 			num_open_fds++;
+	// 			clients.push_back( current_client );
+	// 			pfds[num_open_fds].fd = current_client;
+	// 			pfds[num_open_fds].events = POLLIN; 
+	// 		}
+	// 	}
+	// 	for ( int i = 1; i <= num_open_fds; i++ ) {
+
+	// 		std::cout << RED"bonjour : "CRESET << num_open_fds << std::endl;
+	// 		if (pfds[i].revents & POLLIN ) {
+				
+	// 			int valread = recv( pfds[i].fd, &buffer, 1024, 0 );
+	// 			std::cout << YEL "je suis le client " CRESET << i << std::endl;
+	// 			std::cout << buffer << std::endl;
+				
+	// 			client[i - 1]->setBuffer( buffer );			 
+
+    //             if (valread < 0 ) {
+
+	// 				std::cout << RED "user gone" CRESET << std::endl, num_open_fds--;
+	// 				// std::cout << client[i].getBuffer() << std::endl;
+	// 				// DELETING CLIENT IF NOT RESPONDING / LEAVING
+    //                 close( pfds[i].fd );
+    //                 clients.erase( clients.begin() + i - 1 );
+    //                 pfds[i] = pfds[num_open_fds];
+    //                 num_open_fds--;
+	// 				// std::cout << BLU << clients[i - 1] << CRESET << std::endl;
+	// 				// std::cout << send_msg(ERR_PASSWDMISMATCH(localhost, nick), clients[i - 1]) << std::endl;
+	// 				std::cout << BLU "Je ne reçois plus rien !" CRESET << std::endl;
+    //             }
+	// 		}
+	// 			// else {
+						
+	// 				// HANDSHAKE
+	// 					// send_msg(RPL_WELCOME( localhost, nick ), clients[ i - 1 ] );
+	// 					// send_msg(RPL_YOURHOST( localhost ), clients[ i - 1 ] );
+	// 					// send_msg(RPL_CREATED( localhost ), clients[ i - 1 ] );
+	// 					// send_msg(RPL_MYINFO( localhost ), clients[ i - 1 ] );
+			
+	// 		std::cout << "buffer du client : " << i << std::endl << MAG << client[i - 1]->getBuffer() << CRESET <<std::endl;
+	// 		if ( hasReturn(client[i - 1]->getBuffer() ) == 0 ) {
+
+	// 			std::stringstream	buffSplit;
+	// 			std::string 		firstCommand;
+	// 			std::string 		remainingCommands;
+	// 			std::string			tmp;
+	// 			std::string			tmp2;
+				
+	// 			// stream << client[i - 1]->getBuffer();
+	// 			// std::getline( stream, tmp, '\r' );
+	// 			// std::cout << tmp << std::endl;
+	// 			buffSplit << tmp;
+	// 			buffSplit >> tmp2;
+	// 			std::cout << tmp2 << std::endl;
+				
+	// 			std::string buffer1 = client[i - 1]->getBuffer();
+	// 			std::stringstream stream(buffer1);
+
+	// 			std::getline(stream, firstCommand, '\r');
+
+	// 			if (!firstCommand.empty()) {
+
+	// 				firstCommand.erase(std::remove(firstCommand.begin(), firstCommand.end(), '\r'), firstCommand.end());
+
+	// 				// Split the first command into words and process as needed
+	// 				std::stringstream buffSplit(firstCommand);
+	// 				std::string tmp;
+	// 				std::string tmp2;
+
+	// 				buffSplit >> tmp;
+	// 				std::cout << "First word: " << tmp << std::endl;
+
+	// 				buffSplit >> tmp2;
+	// 				std::cout << "Second word: " << tmp2 << std::endl;
+
+	// 				// Put the remaining commands back into the buffer
+	// 				if (stream.peek() == '\r') {
+	// 					stream.ignore();
+	// 				}
+	// 				std::getline(stream, remainingCommands, '\0');
+	// 				std::cout << GRN << remainingCommands << CRESET << std::endl;
+
+	// 				// Turning the string into a usable char* variable to set in setBuffer
+	// 				char* remainingCommandsChar = new char[remainingCommands.size() + 1];
+	// 				std::copy(remainingCommands.begin(), remainingCommands.end(), remainingCommandsChar);
+	// 				remainingCommandsChar[remainingCommands.size()] = '\0';
+	// 				client[i - 1]->setBuffer(remainingCommandsChar);
+	// 				delete[] remainingCommandsChar;
+	// 			}
+				
+	// 			// std::cout << BLU "Hello" CRESET << std::endl;
+
+	// 		}
+				
+	// 	// }
+	// 	bzero(buffer, 1025);
+	// 	}
+	// }
 	return ( 0 );
 }

@@ -6,7 +6,7 @@
 /*   By: rdel-agu <rdel-agu@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/01/23 17:36:41 by rdel-agu          #+#    #+#             */
-/*   Updated: 2023/03/07 23:01:24 by rdel-agu         ###   ########.fr       */
+/*   Updated: 2023/03/07 23:04:54 by rdel-agu         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -159,24 +159,29 @@ int	main( int argc, char **argv ) {
 			
 			std::string buffer = client[i - 1]->getBuffer();
 			size_t pos = buffer.find('\r');
+			
 			if (pos != std::string::npos) {
+				
 				std::string command = buffer.substr(0, pos);
 				std::cout << "Command: " << command << std::endl;
 				buffer.erase(0, pos + 1);
 				std::cout << "Found \\r in client " << i << "'s buffer." << std::endl;
-				
+
+				// Extract first word
 				std::string tmp;
-				std::istringstream iss(buffer);
-				iss >> tmp;
+				std::stringstream ss(buffer);
+				ss >> tmp;
 				std::cout << "First word: " << RED << tmp << CRESET << std::endl;
-				
+
+				// Extract rest of command
 				std::string tmpRest;
-				std::getline(iss, tmpRest, '\r');
+				std::getline(ss, tmpRest, '\r');
 				std::cout << "Rest of command: " << RED << tmpRest << CRESET << std::endl;
 			}
-			client[i - 1]->setBuffer(const_cast<char*>(buffer.c_str()));
+			client[i - 1]->setBuffer(const_cast<char*>( buffer.c_str() ) );
 			buffer.clear();
 		}
+
 
 
 		i++;

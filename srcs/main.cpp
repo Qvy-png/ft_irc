@@ -6,7 +6,7 @@
 /*   By: rdel-agu <rdel-agu@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/01/23 17:36:41 by rdel-agu          #+#    #+#             */
-/*   Updated: 2023/03/08 10:34:34 by rdel-agu         ###   ########.fr       */
+/*   Updated: 2023/03/08 16:13:53 by rdel-agu         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -68,7 +68,7 @@ int	main( int argc, char **argv ) {
 
 	int			 		server_socket;
 	struct sockaddr_in	server_address;
-	int					addrlen = sizeof( server_address );
+	socklen_t					addrlen = sizeof( server_address );
 
 	if ( argc != 3 )
 		return ( printErr( "Wrong input, please use the following form : ./ircserv <int>port <string>password\n" ) );
@@ -131,7 +131,7 @@ int	main( int argc, char **argv ) {
 			return ( printErr( "Error creating Poll" ) );
 
 		if (pfds[0].revents & POLLIN ) {
-			if ( (current_client = accept( server_socket, ( struct sockaddr * )&server_address, ( socklen_t * )&addrlen ) ) < 0 )
+			if ( ( current_client = accept( server_socket, reinterpret_cast< sockaddr *>(&server_address), &addrlen ) ) < 0 )
 				return ( printErr( "Can't accept" ) );
 			else {
 				
@@ -161,15 +161,13 @@ int	main( int argc, char **argv ) {
 		if ( i <= static_cast<int>( client.size() ) && !client[i - 1]->getBuffer().empty() ) {
 			
 			std::string buffer1 = client[i - 1]->getBuffer();
+				
 			size_t pos = buffer1.find('\r');
-
 			if ( pos != std::string::npos ) {
 				
-				std::string command = buffer1.substr( 0, pos );
-				std::cout << "Command: " << command << std::endl;
-				buffer1.erase( 0, pos + 1 );
-				std::cout << "Found \\r in client " << i << "'s buffer." << std::endl;
-
+				std::string command = buffer1;
+				std::cout << "Command: " GRN << command << CRESET << std::endl;
+				
 				// Extract first word
 				std::string tmp;
 				std::stringstream ss( buffer1 );
@@ -181,18 +179,40 @@ int	main( int argc, char **argv ) {
 				std::getline( ss, tmpRest, '\r' );
 				std::cout << "Rest of command: " << RED << tmpRest << CRESET << std::endl;
 				
-				if ( tmp == "NICK" ) {
+				command = buffer1.substr( 0, pos );
+				buffer1.erase( 0, pos + 1 );
+
+				if ( tmp == "PASS" )
+					client[i - 1]->setPass( const_cast<char*>( tmpRest.c_str() ) );
+
+				else if ( tmp == "NICK" ) {
 				
-				// HANDSHAKE
-					send_msg(RPL_WELCOME( localhost, tmpRest ), clients[ i - 1 ] );
-					send_msg(RPL_YOURHOST( localhost ), clients[ i - 1 ] );
-					send_msg(RPL_CREATED( localhost ), clients[ i - 1 ] );
-					send_msg(RPL_MYINFO( localhost ), clients[ i - 1 ] );
+					if ( client[i - 1]->getPass() != password )
+						ERR_PASSWDMISMATCH( localhost, tmpRest );
+				//TODO CHECK POUR SAVOIR SI LE NICK EST DEJA PRIT OU NON
+				
+				// // HANDSHAKE
+					// send_msg(RPL_WELCOME( localhost, tmpRest ), clients[ i - 1 ] );
+					// send_msg(RPL_YOURHOST( localhost ), clients[ i - 1 ] );
+					// send_msg(RPL_CREATED( localhost ), clients[ i - 1 ] );
+					// send_msg(RPL_MYINFO( localhost ), clients[ i - 1 ] );
 				}
+				else if ( tmp == "PING" )
+					send_msg(PING(localhost), clients[i - 1]);
+				
+				else if ( tmp == "PONG" )
+					send_msg(PONG(), clients[i - 1]);
+					
+				else if (tmp == "USER")
+					std::cout << GRNHB << "bonjour" << CRESET << std::endl;
+					
+				tmp.clear();
+				tmpRest.clear();
 			}
 			client[i - 1]->setBuffer(const_cast<char*>( buffer1.c_str() ) );
 			buffer1.clear();
 			bzero(buffer, 1025);
+			
 		}
 		i++;
 	}

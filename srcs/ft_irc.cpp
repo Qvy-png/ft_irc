@@ -6,7 +6,7 @@
 /*   By: rdel-agu <rdel-agu@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/02/03 14:12:48 by rdel-agu          #+#    #+#             */
-/*   Updated: 2023/03/08 10:10:26 by rdel-agu         ###   ########.fr       */
+/*   Updated: 2023/03/08 14:04:45 by rdel-agu         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -30,8 +30,8 @@ Server& Server::operator=( const Server& ref ) {
 
 void    Server::setPort( int port ) { _port = port; }
 
-void    Server::setPassword( std::string str ) { _password = str; }
-
 int Server::getPort( void ) const { return ( _port ); }
+
+void    Server::setPassword( std::string str ) { _password = str; }
 
 std::string Server::getPassword( void ) const { return ( _password ); }

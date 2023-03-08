@@ -6,7 +6,7 @@
 /*   By: rdel-agu <rdel-agu@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/02/22 15:14:42 by rdel-agu          #+#    #+#             */
-/*   Updated: 2023/03/07 16:33:47 by rdel-agu         ###   ########.fr       */
+/*   Updated: 2023/03/08 10:08:40 by rdel-agu         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -34,10 +34,10 @@ class Client {
         Client& operator=( const Client& );
         
         void        setFd( int );
-        void        setPass( std::string );
-        void        setNick( std::string );
-        void        setUser( std::string );
-        void        setFullName( std::string );
+        void        setPass( char* );
+        void        setNick( char*);
+        void        setUser( char* );
+        void        setFullName( char* );
         void        setBuffer( char* );
         int         getFd( void );
         std::string getPass( void );

@@ -6,7 +6,7 @@
 /*   By: rdel-agu <rdel-agu@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/02/22 16:05:30 by rdel-agu          #+#    #+#             */
-/*   Updated: 2023/03/07 16:33:42 by rdel-agu         ###   ########.fr       */
+/*   Updated: 2023/03/08 09:53:29 by rdel-agu         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -28,6 +28,18 @@ Client& Client::operator=( const Client& ref ) {
     return ( *this );
 }
 
+void Client::setPass( char *str ) { _pass = str; }
+
+std::string Client::getPass( void ) { return( _pass ); }
+
+void Client::setNick( char *str ) { _nick = str; }
+
+std::string Client::getNick( void ) { return( _nick ); }
+
+void Client::setUser( char *str ) { _user = str; }
+
+std::string Client::getUser( void ) { return( _user ); }
+
 void Client::setBuffer( char* str ) { _buffer = str; }
 
-std::string Client::getBuffer( void ) { return (_buffer); }
+std::string Client::getBuffer( void ) { return ( _buffer ); }

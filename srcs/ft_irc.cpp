@@ -6,7 +6,7 @@
 /*   By: rdel-agu <rdel-agu@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/02/03 14:12:48 by rdel-agu          #+#    #+#             */
-/*   Updated: 2023/02/03 14:24:49 by rdel-agu         ###   ########.fr       */
+/*   Updated: 2023/03/08 10:10:26 by rdel-agu         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -35,4 +35,3 @@ void    Server::setPassword( std::string str ) { _password = str; }
 int Server::getPort( void ) const { return ( _port ); }
 
 std::string Server::getPassword( void ) const { return ( _password ); }
-

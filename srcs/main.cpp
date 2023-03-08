@@ -6,7 +6,7 @@
 /*   By: rdel-agu <rdel-agu@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/01/23 17:36:41 by rdel-agu          #+#    #+#             */
-/*   Updated: 2023/03/08 09:45:25 by rdel-agu         ###   ########.fr       */
+/*   Updated: 2023/03/08 10:34:34 by rdel-agu         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -16,10 +16,11 @@
 
 int		printErr( std::string str ) { std::cerr << REDHB << str << CRESET; return ( 1 ); }
 
-int	send_msg(std::string msg, int sfd)
-{
+int	send_msg(std::string msg, int sfd) {
+
 	int res;
-	res = send(sfd, msg.c_str(), msg.length(), 0); // MSG_CONFIRM
+	
+	res = send(sfd, msg.c_str(), msg.length(), MSG_CONFIRM);
 	return (res);
 }
 
@@ -130,12 +131,13 @@ int	main( int argc, char **argv ) {
 			return ( printErr( "Error creating Poll" ) );
 
 		if (pfds[0].revents & POLLIN ) {
-			if ((current_client = accept(server_socket, (struct sockaddr *)&server_address, (socklen_t *)&addrlen)) < 0)
+			if ( (current_client = accept( server_socket, ( struct sockaddr * )&server_address, ( socklen_t * )&addrlen ) ) < 0 )
 				return ( printErr( "Can't accept" ) );
 			else {
-				client.push_back(new Client(current_client));
+				
+				client.push_back( new Client( current_client ) );
 				num_open_fds++;
-				clients.push_back(current_client);
+				clients.push_back( current_client );
 				pfds[num_open_fds].fd = current_client;
 				pfds[num_open_fds].events = POLLIN; 
 				std::cout << "Accepted client #" << num_open_fds << std::endl;
@@ -144,7 +146,7 @@ int	main( int argc, char **argv ) {
 
 		if ( pfds[i].revents & POLLIN ) {
 			
-			int valread = recv(pfds[i].fd, &buffer, 1024, 0);
+			int valread = recv( pfds[i].fd, &buffer, 1024, 0 );
 			
 			if ( valread < 0 )
 				std::cerr << "Error reading from client #" << i << std::endl;
@@ -152,44 +154,49 @@ int	main( int argc, char **argv ) {
 				
 				std::cout << YEL "je suis le client " CRESET << i << std::endl;
 				std::cout << buffer << std::endl;
-				client[i - 1]->setBuffer(buffer);
+				client[i - 1]->setBuffer( buffer );
 			}
 		}
 
 		if ( i <= static_cast<int>( client.size() ) && !client[i - 1]->getBuffer().empty() ) {
 			
-			std::string buffer = client[i - 1]->getBuffer();
-			size_t pos = buffer.find('\r');
+			std::string buffer1 = client[i - 1]->getBuffer();
+			size_t pos = buffer1.find('\r');
 
-			if (pos != std::string::npos) {
+			if ( pos != std::string::npos ) {
 				
-				std::string command = buffer.substr(0, pos);
+				std::string command = buffer1.substr( 0, pos );
 				std::cout << "Command: " << command << std::endl;
-				buffer.erase(0, pos + 1);
+				buffer1.erase( 0, pos + 1 );
 				std::cout << "Found \\r in client " << i << "'s buffer." << std::endl;
 
 				// Extract first word
 				std::string tmp;
-				std::stringstream ss(buffer);
+				std::stringstream ss( buffer1 );
 				ss >> tmp;
 				std::cout << "First word: " << RED << tmp << CRESET << std::endl;
 
 				// Extract rest of command
 				std::string tmpRest;
-				std::getline(ss, tmpRest, '\r');
+				std::getline( ss, tmpRest, '\r' );
 				std::cout << "Rest of command: " << RED << tmpRest << CRESET << std::endl;
+				
+				if ( tmp == "NICK" ) {
+				
+				// HANDSHAKE
+					send_msg(RPL_WELCOME( localhost, tmpRest ), clients[ i - 1 ] );
+					send_msg(RPL_YOURHOST( localhost ), clients[ i - 1 ] );
+					send_msg(RPL_CREATED( localhost ), clients[ i - 1 ] );
+					send_msg(RPL_MYINFO( localhost ), clients[ i - 1 ] );
+				}
 			}
-			client[i - 1]->setBuffer(const_cast<char*>( buffer.c_str() ) );
-			buffer.clear();
+			client[i - 1]->setBuffer(const_cast<char*>( buffer1.c_str() ) );
+			buffer1.clear();
+			bzero(buffer, 1025);
 		}
 		i++;
 	}
 
-	// HANDSHAKE
-	// 					// send_msg(RPL_WELCOME( localhost, nick ), clients[ i - 1 ] );
-	// 					// send_msg(RPL_YOURHOST( localhost ), clients[ i - 1 ] );
-	// 					// send_msg(RPL_CREATED( localhost ), clients[ i - 1 ] );
-	// 					// send_msg(RPL_MYINFO( localhost ), clients[ i - 1 ] );
 
 	return ( 0 );
 }

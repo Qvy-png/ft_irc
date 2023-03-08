@@ -6,7 +6,7 @@
 /*   By: rdel-agu <rdel-agu@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/01/23 17:36:41 by rdel-agu          #+#    #+#             */
-/*   Updated: 2023/03/07 23:04:54 by rdel-agu         ###   ########.fr       */
+/*   Updated: 2023/03/08 09:45:25 by rdel-agu         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -142,24 +142,25 @@ int	main( int argc, char **argv ) {
 			}
 		}
 
-		if (pfds[i].revents & POLLIN ) {
+		if ( pfds[i].revents & POLLIN ) {
 			
 			int valread = recv(pfds[i].fd, &buffer, 1024, 0);
 			
 			if ( valread < 0 )
 				std::cerr << "Error reading from client #" << i << std::endl;
 			else {
+				
 				std::cout << YEL "je suis le client " CRESET << i << std::endl;
 				std::cout << buffer << std::endl;
 				client[i - 1]->setBuffer(buffer);
 			}
 		}
 
-		if (i <= static_cast<int>(client.size()) && !client[i - 1]->getBuffer().empty()) {
+		if ( i <= static_cast<int>( client.size() ) && !client[i - 1]->getBuffer().empty() ) {
 			
 			std::string buffer = client[i - 1]->getBuffer();
 			size_t pos = buffer.find('\r');
-			
+
 			if (pos != std::string::npos) {
 				
 				std::string command = buffer.substr(0, pos);
@@ -181,9 +182,6 @@ int	main( int argc, char **argv ) {
 			client[i - 1]->setBuffer(const_cast<char*>( buffer.c_str() ) );
 			buffer.clear();
 		}
-
-
-
 		i++;
 	}
 

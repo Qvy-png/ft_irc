@@ -6,7 +6,7 @@
 /*   By: rdel-agu <rdel-agu@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/01/23 17:36:41 by rdel-agu          #+#    #+#             */
-/*   Updated: 2023/03/08 16:13:53 by rdel-agu         ###   ########.fr       */
+/*   Updated: 2023/03/08 17:01:47 by rdel-agu         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -110,8 +110,7 @@ int	main( int argc, char **argv ) {
 	bzero(buffer, 1025);
 	
 	std::vector<Client*> client;
-	
-	std::string			welcome = "Welcome to the IRC server!\n";
+
 	std::string			localhost, nick;
 	localhost = "localhost";
 	nick = "nick";
@@ -121,7 +120,7 @@ int	main( int argc, char **argv ) {
 	
 	int i = 1;
 	while ( true ) {
-		
+
 		if (i > num_open_fds) {
 			i = 1;
 		}
@@ -183,19 +182,13 @@ int	main( int argc, char **argv ) {
 				buffer1.erase( 0, pos + 1 );
 
 				if ( tmp == "PASS" )
-					client[i - 1]->setPass( const_cast<char*>( tmpRest.c_str() ) );
+					client[i - 1]->setPass( tmpRest );
 
 				else if ( tmp == "NICK" ) {
 				
-					if ( client[i - 1]->getPass() != password )
-						ERR_PASSWDMISMATCH( localhost, tmpRest );
 				//TODO CHECK POUR SAVOIR SI LE NICK EST DEJA PRIT OU NON
 				
-				// // HANDSHAKE
-					// send_msg(RPL_WELCOME( localhost, tmpRest ), clients[ i - 1 ] );
-					// send_msg(RPL_YOURHOST( localhost ), clients[ i - 1 ] );
-					// send_msg(RPL_CREATED( localhost ), clients[ i - 1 ] );
-					// send_msg(RPL_MYINFO( localhost ), clients[ i - 1 ] );
+					client[i - 1]->setNick( tmpRest );
 				}
 				else if ( tmp == "PING" )
 					send_msg(PING(localhost), clients[i - 1]);
@@ -204,10 +197,31 @@ int	main( int argc, char **argv ) {
 					send_msg(PONG(), clients[i - 1]);
 					
 				else if (tmp == "USER")
-					std::cout << GRNHB << "bonjour" << CRESET << std::endl;
-					
-				tmp.clear();
-				tmpRest.clear();
+					client[i - 1]->setUser( tmpRest );
+				
+				if ( client[i - 1]->getHs() == false ) {
+				
+					if ( !client[i - 1]->getPass().empty() && !client[i - 1]->getNick().empty() && !client[i - 1]->getUser().empty() ) {
+						// std::cout << BLU << client[i - 1]->getPass() << " and " <<  client[i - 1]->getNick() << " and " << client[i - 1]->getUser() << CRESET << std::endl;
+
+
+						
+						std::cout << GRNHB << "dsafasdfa" << password << CRESET << std::endl;
+						if ( client[i - 1]->getPass() != password )
+							ERR_PASSWDMISMATCH( localhost, client[i - 1]->getNick() );
+						else {
+
+							
+							client[i - 1]->setHs(true);
+							
+							// HANDSHAKE
+							send_msg(RPL_WELCOME( localhost, tmpRest ), clients[ i - 1 ] );
+							send_msg(RPL_YOURHOST( localhost ), clients[ i - 1 ] );
+							send_msg(RPL_CREATED( localhost ), clients[ i - 1 ] );
+							send_msg(RPL_MYINFO( localhost ), clients[ i - 1 ] );
+						}
+					}
+				}
 			}
 			client[i - 1]->setBuffer(const_cast<char*>( buffer1.c_str() ) );
 			buffer1.clear();

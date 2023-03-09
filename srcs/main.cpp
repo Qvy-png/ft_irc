@@ -6,7 +6,7 @@
 /*   By: rdel-agu <rdel-agu@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/01/23 17:36:41 by rdel-agu          #+#    #+#             */
-/*   Updated: 2023/03/09 14:09:10 by rdel-agu         ###   ########.fr       */
+/*   Updated: 2023/03/09 16:26:40 by rdel-agu         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -194,28 +194,41 @@ int	main( int argc, char **argv ) {
 				else if ( tmp == "PING" )
 					send_msg(PONG(), clients[i - 1]);
 					
-				else if (tmp == "USER")
-					client[i - 1]->setUser( tmpRest );
+				else if (tmp == "USER") {
+					
+					std::stringstream	userSplitter( tmpRest );
+					std::string			splitTmp;
+					int					j = 0;
+
+					client[i - 1]->setFullName( tmpRest );
+					while ( getline( userSplitter, splitTmp, ' ') ) {
+						
+						if ( j == 2 )
+							client[i - 1]->setHost( splitTmp );
+						j++;
+					}			
+				}
 				
 				if ( client[i - 1]->getHs() == false ) {
 				
-					if ( !client[i - 1]->getPass().empty() && !client[i - 1]->getNick().empty() && !client[i - 1]->getUser().empty() ) {
-						// std::cout << BLU << client[i - 1]->getPass() << " and " <<  client[i - 1]->getNick() << " and " << client[i - 1]->getUser() << CRESET << std::endl;
+					if ( !client[i - 1]->getPass().empty() && !client[i - 1]->getNick().empty() && !client[i - 1]->getHost().empty() ) {
 						
 						if ( client[i - 1]->getPass() != password ) {
 							std::cout << GRNHB << password << BLUHB << client[i - 1]->getNick() << CRESET << std::endl;
-							ERR_PASSWDMISMATCH( localhost, client[i - 1]->getNick() );}
+							ERR_PASSWDMISMATCH( client[i - 1]->getHost(), client[i - 1]->getNick() );}
 						else {
 
 							// HANDSHAKE
-							send_msg(RPL_WELCOME( localhost, tmpRest ), clients[ i - 1 ] );
-							send_msg(RPL_YOURHOST( localhost ), clients[ i - 1 ] );
-							send_msg(RPL_CREATED( localhost ), clients[ i - 1 ] );
-							send_msg(RPL_MYINFO( localhost ), clients[ i - 1 ] );
+							send_msg(RPL_WELCOME( client[i - 1]->getHost(), client[i - 1]->getNick() ), clients[ i - 1 ] );
+							send_msg(RPL_YOURHOST( client[i - 1]->getHost() ), clients[ i - 1 ] );
+							send_msg(RPL_CREATED( client[i - 1]->getHost() ), clients[ i - 1 ] );
+							send_msg(RPL_MYINFO( client[i - 1]->getHost() ), clients[ i - 1 ] );
 							client[i - 1]->setHs(true);
 						}
 					}
 				}
+				tmp.clear();
+				tmpRest.clear();
 			}
 			client[i - 1]->setBuffer(const_cast<char*>( buffer1.c_str() ) );
 			buffer1.clear();

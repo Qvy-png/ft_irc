@@ -6,7 +6,7 @@
 /*   By: rdel-agu <rdel-agu@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/01/23 17:36:41 by rdel-agu          #+#    #+#             */
-/*   Updated: 2023/03/08 17:01:47 by rdel-agu         ###   ########.fr       */
+/*   Updated: 2023/03/09 14:09:10 by rdel-agu         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -176,6 +176,7 @@ int	main( int argc, char **argv ) {
 				// Extract rest of command
 				std::string tmpRest;
 				std::getline( ss, tmpRest, '\r' );
+				tmpRest = tmpRest.erase( 0, 1 );
 				std::cout << "Rest of command: " << RED << tmpRest << CRESET << std::endl;
 				
 				command = buffer1.substr( 0, pos );
@@ -191,9 +192,6 @@ int	main( int argc, char **argv ) {
 					client[i - 1]->setNick( tmpRest );
 				}
 				else if ( tmp == "PING" )
-					send_msg(PING(localhost), clients[i - 1]);
-				
-				else if ( tmp == "PONG" )
 					send_msg(PONG(), clients[i - 1]);
 					
 				else if (tmp == "USER")
@@ -203,22 +201,18 @@ int	main( int argc, char **argv ) {
 				
 					if ( !client[i - 1]->getPass().empty() && !client[i - 1]->getNick().empty() && !client[i - 1]->getUser().empty() ) {
 						// std::cout << BLU << client[i - 1]->getPass() << " and " <<  client[i - 1]->getNick() << " and " << client[i - 1]->getUser() << CRESET << std::endl;
-
-
 						
-						std::cout << GRNHB << "dsafasdfa" << password << CRESET << std::endl;
-						if ( client[i - 1]->getPass() != password )
-							ERR_PASSWDMISMATCH( localhost, client[i - 1]->getNick() );
+						if ( client[i - 1]->getPass() != password ) {
+							std::cout << GRNHB << password << BLUHB << client[i - 1]->getNick() << CRESET << std::endl;
+							ERR_PASSWDMISMATCH( localhost, client[i - 1]->getNick() );}
 						else {
 
-							
-							client[i - 1]->setHs(true);
-							
 							// HANDSHAKE
 							send_msg(RPL_WELCOME( localhost, tmpRest ), clients[ i - 1 ] );
 							send_msg(RPL_YOURHOST( localhost ), clients[ i - 1 ] );
 							send_msg(RPL_CREATED( localhost ), clients[ i - 1 ] );
 							send_msg(RPL_MYINFO( localhost ), clients[ i - 1 ] );
+							client[i - 1]->setHs(true);
 						}
 					}
 				}

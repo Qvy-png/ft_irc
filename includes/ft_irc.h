@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   ft_irc.h                                           :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: rdel-agu <rdel-agu@student.42.fr>          +#+  +:+       +#+        */
+/*   By: dasereno <dasereno@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/01/23 17:37:21 by rdel-agu          #+#    #+#             */
-/*   Updated: 2023/03/08 11:00:48 by rdel-agu         ###   ########.fr       */
+/*   Updated: 2023/03/13 19:44:40 by dasereno         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -30,6 +30,7 @@
 #include <string.h>
 #include <stdlib.h>
 #include <vector>
+#include <map>
 #include <sstream>
 #include <string>
 #include <algorithm>
@@ -39,6 +40,8 @@
 #include "color.hpp"
 #include "ft_irc.hpp"
 #include "client.hpp"
+#include "canal.hpp"
+#include "message.hpp"
 
 // data
 

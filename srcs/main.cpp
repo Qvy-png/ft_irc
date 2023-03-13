@@ -6,7 +6,7 @@
 /*   By: dasereno <dasereno@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/01/23 17:36:41 by rdel-agu          #+#    #+#             */
-/*   Updated: 2023/03/13 14:58:42 by dasereno         ###   ########.fr       */
+/*   Updated: 2023/03/13 20:08:13 by dasereno         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -69,11 +69,50 @@ void signal_callback_handler( int signum ) {
    exit(signum);
 }
 
+bool canalExist(std::vector<Canal *> canals, std::string canalName) {
+	std::vector<Canal*>::iterator it = canals.begin();
+
+	while (it != canals.end()) {
+		if ((*it)->getName() == canalName)
+			return (true);
+		it++;
+	}
+	return (false);
+}
+
+Canal *getCanal(std::vector<Canal *> canals, std::string canalName) {
+	std::vector<Canal *>::iterator it = canals.begin();
+
+	while (it != canals.end()) {
+		if ((*it)->getName() == canalName)
+			return ((*it));
+		it++;
+	}
+	return (NULL);
+}
+
+bool	validCanalName(std::string name) {
+	if (name.size() > 200 || name.find(' ') != name.npos|| name.find(',') != name.npos)
+		return (false);
+	return (true);
+}
+
+bool	isClient(std::vector<Client *> clients, Client *cli ) {
+	for (std::vector<Client *>::iterator it = clients.begin(); it != clients.end(); it++) {
+		Client *tmp = (*it);
+		std::cout << "la " << tmp->getNick() << std::endl;
+		if (tmp->getNick() == cli->getNick())
+			return (true);
+	}
+	return (false);
+}
+
 int	main( int argc, char **argv ) {
 
 	int			 		server_socket;
-	struct sockaddr_in	server_address;
+	struct sockaddr_in6	server_address;
 	socklen_t					addrlen = sizeof( server_address );
+	
 
 	if ( argc != 3 )
 		return ( printErr( "Wrong input, please use the following form : ./ircserv <int>port <string>password\n" ) );
@@ -91,14 +130,18 @@ int	main( int argc, char **argv ) {
 	// TCP SOCKET CREATION
 
 	Server data(port, password);
-	server_socket = socket( AF_INET, SOCK_STREAM, 0);
+	server_socket = socket( AF_INET6, SOCK_STREAM, 0);
 	if ( server_socket < 0 )
 		return ( printErr( "Error creating socket" ) );
 		
-	server_address.sin_family = AF_INET;
-	server_address.sin_addr.s_addr = INADDR_ANY;
-	server_address.sin_port = htons( port );
-	
+	server_address.sin6_family = AF_INET6;
+	server_address.sin6_addr = in6addr_any;
+	server_address.sin6_port = htons( port );
+	server_address.sin6_flowinfo = 0;
+	server_address.sin6_scope_id = 0; 
+	int	n = 1;
+	if (setsockopt(server_socket, SOL_SOCKET, SO_REUSEADDR, &n, sizeof(int)) < 0)
+    	return ( printErr( "Error option in socket" ) );
 	// BINDING SOCKET AND LISTENING TO SOCKET CHECK
 	if ( bind(server_socket, ( struct sockaddr* ) &server_address, sizeof( server_address ) ) < 0) 
 		return ( printErr( "Error binding socket" ) );
@@ -109,8 +152,9 @@ int	main( int argc, char **argv ) {
 	int					num_open_fds = 0, current_client = -1;
 	struct pollfd		pfds[MAX_CLIENTS];
 	std::vector<int>	clients;
+	std::vector<Canal *>	canals;
 	char				buffer[1025];
-	
+
 	bzero(buffer, 1025);
 	
 	std::vector<Client*> client;
@@ -119,11 +163,12 @@ int	main( int argc, char **argv ) {
 	localhost = "localhost";
 	nick = "nick";
 
+	short event[2] = {POLLIN, POLLOUT};
+	int	ev = 0;
+
 	pfds[0].fd = server_socket;
 	pfds[0].events = POLLIN;
-	
 	while ( true ) {
-
 		signal(SIGINT, signal_callback_handler);
 
 		int poll_count = poll(pfds, num_open_fds + 1, 10);
@@ -140,12 +185,14 @@ int	main( int argc, char **argv ) {
 				num_open_fds++;
 				clients.push_back( current_client );
 				pfds[num_open_fds].fd = current_client;
-				pfds[num_open_fds].events = POLLIN; 
+				pfds[num_open_fds].events = POLLIN;
+				pfds[num_open_fds].revents = 0;
 				std::cout << "Accepted client #" << num_open_fds << std::endl;
 			}
 		}
 
 		for (int i = 1; i < num_open_fds + 1; i++) {
+			pfds[i].events = event[ev]; 
 			if ( pfds[i].revents & POLLIN ) {
 				
 				int valread = recv( pfds[i].fd, &buffer, 1024, 0 );
@@ -166,6 +213,24 @@ int	main( int argc, char **argv ) {
 					std::cout << buffer << std::endl;
 					client[i - 1]->addBuffer( buffer );
 				}
+			}
+
+			if ( pfds[i].revents & POLLOUT ) {
+				// LIMITE DE SEND DE 1024CHAR;
+				std::vector<Canal *> canals = client[i - 1]->getCanalList();
+
+				for (std::vector<Canal *>::iterator it = canals.begin(); it != canals.end(); it++) {
+					Canal *tmp = (*it);
+					for (std::vector<Message>::iterator it_msg = tmp->waitingMessages.begin(); it_msg != tmp->waitingMessages.end(); it_msg++) {
+						Message msg = (*it_msg);
+						std::cout << "ci " << msg.getMessage() << std::endl;
+						if (isClient(msg.clients, client[i - 1])) {
+							std::cout << "LE MESSAGE EST " << msg.getMessage() << std::endl;
+						}
+					}
+					
+				}
+				// if (client[i - 1].ca)
 			}
 
 			if ( i <= static_cast<int>( client.size() ) && !client[i - 1]->getBuffer().empty() ) {
@@ -204,7 +269,8 @@ int	main( int argc, char **argv ) {
 					}
 					else if ( tmp == "PING" )
 						send_msg(PONG(), clients[i - 1]);
-						
+					
+
 					else if (tmp == "USER") {
 						
 						std::stringstream	userSplitter( tmpRest );
@@ -218,6 +284,37 @@ int	main( int argc, char **argv ) {
 								client[i - 1]->setHost( splitTmp );
 							j++;
 						}			
+					} else if (tmp == "JOIN") {
+						std::cout << "Client #" << i << " try to join " << tmpRest << std::endl;
+						if (!canalExist(canals, tmpRest))
+						{
+							canals.push_back(new Canal (tmpRest, *client[i - 1]));
+							client[i - 1]->addCanal(getCanal(canals, tmpRest));
+							client[i - 1]->printCanals();
+							getCanal(canals, tmpRest)->clients.push_back(client[i - 1]);
+						} else {
+							client[i - 1]->addCanal(getCanal(canals, tmpRest));
+							getCanal(canals, tmpRest)->clients.push_back(client[i - 1]);
+						}
+					}
+					else if (tmp == "QUIT") {
+						std::cout << "Client #" << i << " disconnected. QUIT" << std::endl;
+						close( pfds[i].fd );
+						// client[i - 1]->setBuffer((char *)"");
+						delete client[i - 1];
+						clients.erase( clients.begin() + i - 1 );
+						for (int j = i; j + 1 <= num_open_fds + 1; j++)
+							pfds[j] = pfds[j + 1];
+						num_open_fds--;
+						break ;
+					} else if (tmp == "PRIVMSG") {
+						std::string channel = tmpRest.substr(0, tmpRest.find(' '));
+						std::string msg = tmpRest.substr(tmpRest.find(':'), tmpRest.size());
+						Message newMsg (msg);
+						Canal	*canal = getCanal(canals, channel);
+						canal->waitingMessages.push_back(msg);
+						// (*canal->waitingMessages.rend()).clients = canal->clients; 
+						// ====> Corriger ca : il faut pouvoir push dans la liste de waiting message la liste de clients.
 					}
 					
 					if ( client[i - 1]->getHs() == false ) {
@@ -245,9 +342,11 @@ int	main( int argc, char **argv ) {
 				client[i - 1]->setBuffer(const_cast<char*>( buffer1.c_str() ) );
 				buffer1.clear();
 				bzero(buffer, 1025);
-				
 			}
 		}
+		ev++;
+		if (ev == 2)
+			ev = 0;
 	}
 
 

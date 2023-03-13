@@ -6,7 +6,7 @@
 /*   By: dasereno <dasereno@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/02/22 16:05:30 by rdel-agu          #+#    #+#             */
-/*   Updated: 2023/03/13 14:51:45 by dasereno         ###   ########.fr       */
+/*   Updated: 2023/03/13 19:42:11 by dasereno         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,7 +14,7 @@
 
 Client::Client( void ) : _hs( false ), _buffer("") { return ; }
 
-Client::Client( int read ) :  _fd(read), _hs( false ), _buffer("") { return ; }
+Client::Client( int read ) :  _fd(read), _hs( false ), _buffer("")  { return ; }
 
 Client::Client( const Client& ref ) { *this = ref; }
 

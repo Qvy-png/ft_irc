@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   main.cpp                                           :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: rdel-agu <rdel-agu@student.42.fr>          +#+  +:+       +#+        */
+/*   By: dasereno <dasereno@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/01/23 17:36:41 by rdel-agu          #+#    #+#             */
-/*   Updated: 2023/03/09 16:26:40 by rdel-agu         ###   ########.fr       */
+/*   Updated: 2023/03/13 13:35:14 by dasereno         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -118,12 +118,9 @@ int	main( int argc, char **argv ) {
 	pfds[0].fd = server_socket;
 	pfds[0].events = POLLIN;
 	
-	int i = 1;
 	while ( true ) {
 
-		if (i > num_open_fds) {
-			i = 1;
-		}
+
 		int poll_count = poll(pfds, num_open_fds + 1, 10);
 
 		if (poll_count == -1)
@@ -143,99 +140,108 @@ int	main( int argc, char **argv ) {
 			}
 		}
 
-		if ( pfds[i].revents & POLLIN ) {
-			
-			int valread = recv( pfds[i].fd, &buffer, 1024, 0 );
-			
-			if ( valread < 0 )
-				std::cerr << "Error reading from client #" << i << std::endl;
-			else {
+		for (int i = 1; i < num_open_fds + 1; i++) {
+			if ( pfds[i].revents & POLLIN ) {
 				
-				std::cout << YEL "je suis le client " CRESET << i << std::endl;
-				std::cout << buffer << std::endl;
-				client[i - 1]->setBuffer( buffer );
+				int valread = recv( pfds[i].fd, &buffer, 1024, 0 );
+				
+				if ( valread < 0 )
+					std::cerr << "Error reading from client #" << i << std::endl;
+				else if ( valread == 0) {
+					std::cout << "Client #" << i << " disconnected." << std::endl;
+					close( pfds[i].fd );
+					clients.erase( clients.begin() + i - 1 );
+					for (int j = i; j + 1 <= num_open_fds + 1; j++)
+						pfds[j] = pfds[j + 1];
+					num_open_fds--;
+				}
+				else {
+					
+					std::cout << YEL "je suis le client " CRESET << i << std::endl;
+					std::cout << buffer << std::endl;
+					client[i - 1]->setBuffer( buffer );
+				}
 			}
-		}
 
-		if ( i <= static_cast<int>( client.size() ) && !client[i - 1]->getBuffer().empty() ) {
-			
-			std::string buffer1 = client[i - 1]->getBuffer();
+			if ( i <= static_cast<int>( client.size() ) && !client[i - 1]->getBuffer().empty() ) {
 				
-			size_t pos = buffer1.find('\r');
-			if ( pos != std::string::npos ) {
-				
-				std::string command = buffer1;
-				std::cout << "Command: " GRN << command << CRESET << std::endl;
-				
-				// Extract first word
-				std::string tmp;
-				std::stringstream ss( buffer1 );
-				ss >> tmp;
-				std::cout << "First word: " << RED << tmp << CRESET << std::endl;
-
-				// Extract rest of command
-				std::string tmpRest;
-				std::getline( ss, tmpRest, '\r' );
-				tmpRest = tmpRest.erase( 0, 1 );
-				std::cout << "Rest of command: " << RED << tmpRest << CRESET << std::endl;
-				
-				command = buffer1.substr( 0, pos );
-				buffer1.erase( 0, pos + 1 );
-
-				if ( tmp == "PASS" )
-					client[i - 1]->setPass( tmpRest );
-
-				else if ( tmp == "NICK" ) {
-				
-				//TODO CHECK POUR SAVOIR SI LE NICK EST DEJA PRIT OU NON
-				
-					client[i - 1]->setNick( tmpRest );
-				}
-				else if ( tmp == "PING" )
-					send_msg(PONG(), clients[i - 1]);
+				std::string buffer1 = client[i - 1]->getBuffer();
 					
-				else if (tmp == "USER") {
+				size_t pos = buffer1.find('\r');
+				if ( pos != std::string::npos ) {
 					
-					std::stringstream	userSplitter( tmpRest );
-					std::string			splitTmp;
-					int					j = 0;
+					std::string command = buffer1;
+					std::cout << "Command: " GRN << command << CRESET << std::endl;
+					
+					// Extract first word
+					std::string tmp;
+					std::stringstream ss( buffer1 );
+					ss >> tmp;
+					std::cout << "First word: " << RED << tmp << CRESET << std::endl;
 
-					client[i - 1]->setFullName( tmpRest );
-					while ( getline( userSplitter, splitTmp, ' ') ) {
-						
-						if ( j == 2 )
-							client[i - 1]->setHost( splitTmp );
-						j++;
-					}			
-				}
-				
-				if ( client[i - 1]->getHs() == false ) {
-				
-					if ( !client[i - 1]->getPass().empty() && !client[i - 1]->getNick().empty() && !client[i - 1]->getHost().empty() ) {
-						
-						if ( client[i - 1]->getPass() != password ) {
-							std::cout << GRNHB << password << BLUHB << client[i - 1]->getNick() << CRESET << std::endl;
-							ERR_PASSWDMISMATCH( client[i - 1]->getHost(), client[i - 1]->getNick() );}
-						else {
+					// Extract rest of command
+					std::string tmpRest;
+					std::getline( ss, tmpRest, '\r' );
+					tmpRest = tmpRest.erase( 0, 1 );
+					std::cout << "Rest of command: " << RED << tmpRest << CRESET << std::endl;
+					command = buffer1.substr( 0, pos );
+					std::cout << "command to execute next :" << GRN << command << std::endl;
+					buffer1.erase( 0, pos + 1 );
 
-							// HANDSHAKE
-							send_msg(RPL_WELCOME( client[i - 1]->getHost(), client[i - 1]->getNick() ), clients[ i - 1 ] );
-							send_msg(RPL_YOURHOST( client[i - 1]->getHost() ), clients[ i - 1 ] );
-							send_msg(RPL_CREATED( client[i - 1]->getHost() ), clients[ i - 1 ] );
-							send_msg(RPL_MYINFO( client[i - 1]->getHost() ), clients[ i - 1 ] );
-							client[i - 1]->setHs(true);
+					if ( tmp == "PASS" )
+						client[i - 1]->setPass( tmpRest );
+
+					else if ( tmp == "NICK" ) {
+					
+					//TODO CHECK POUR SAVOIR SI LE NICK EST DEJA PRIT OU NON
+					
+						client[i - 1]->setNick( tmpRest );
+					}
+					else if ( tmp == "PING" )
+						send_msg(PONG(), clients[i - 1]);
+						
+					else if (tmp == "USER") {
+						
+						std::stringstream	userSplitter( tmpRest );
+						std::string			splitTmp;
+						int					j = 0;
+
+						client[i - 1]->setFullName( tmpRest );
+						while ( getline( userSplitter, splitTmp, ' ') ) {
+							
+							if ( j == 2 )
+								client[i - 1]->setHost( splitTmp );
+							j++;
+						}			
+					}
+					
+					if ( client[i - 1]->getHs() == false ) {
+					
+						if ( !client[i - 1]->getPass().empty() && !client[i - 1]->getNick().empty() && !client[i - 1]->getHost().empty() ) {
+							
+							if ( client[i - 1]->getPass() != password ) {
+								std::cout << GRNHB << password << BLUHB << client[i - 1]->getNick() << CRESET << std::endl;
+								ERR_PASSWDMISMATCH( client[i - 1]->getHost(), client[i - 1]->getNick() );}
+							else {
+
+								// HANDSHAKE
+								send_msg(RPL_WELCOME( client[i - 1]->getHost(), client[i - 1]->getNick() ), clients[ i - 1 ] );
+								send_msg(RPL_YOURHOST( client[i - 1]->getHost() ), clients[ i - 1 ] );
+								send_msg(RPL_CREATED( client[i - 1]->getHost() ), clients[ i - 1 ] );
+								send_msg(RPL_MYINFO( client[i - 1]->getHost() ), clients[ i - 1 ] );
+								client[i - 1]->setHs(true);
+							}
 						}
 					}
+					tmp.clear();
+					tmpRest.clear();
 				}
-				tmp.clear();
-				tmpRest.clear();
+				client[i - 1]->setBuffer(const_cast<char*>( buffer1.c_str() ) );
+				buffer1.clear();
+				bzero(buffer, 1025);
+				
 			}
-			client[i - 1]->setBuffer(const_cast<char*>( buffer1.c_str() ) );
-			buffer1.clear();
-			bzero(buffer, 1025);
-			
 		}
-		i++;
 	}
 
 

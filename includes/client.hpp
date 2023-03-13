@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   client.hpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: rdel-agu <rdel-agu@student.42.fr>          +#+  +:+       +#+        */
+/*   By: dasereno <dasereno@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/02/22 15:14:42 by rdel-agu          #+#    #+#             */
-/*   Updated: 2023/03/09 15:42:49 by rdel-agu         ###   ########.fr       */
+/*   Updated: 2023/03/13 14:51:54 by dasereno         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -41,6 +41,7 @@ class Client {
         void        setHost( std::string  );
         void        setFullName( std::string  );
         void        setBuffer( char* );
+        void        addBuffer( char* );
         int         getFd( void );
         bool        getHs( void );
         std::string getPass( void );

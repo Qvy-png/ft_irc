@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   client.cpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: rdel-agu <rdel-agu@student.42.fr>          +#+  +:+       +#+        */
+/*   By: dasereno <dasereno@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/02/22 16:05:30 by rdel-agu          #+#    #+#             */
-/*   Updated: 2023/03/09 16:11:42 by rdel-agu         ###   ########.fr       */
+/*   Updated: 2023/03/13 14:51:45 by dasereno         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -46,7 +46,9 @@ void Client::setHost( std::string str ) { _host = str; }
 
 std::string Client::getHost( void ) { return( _host ); }
 
-void Client::setBuffer( char* str ) { _buffer = str; }
+void Client::setBuffer( char* str ) { _buffer = str; } // ajouter le buffer si non vide
+
+void Client::addBuffer( char* str ) { _buffer += str; } // ajouter le buffer si non vide
 
 std::string Client::getBuffer( void ) { return ( _buffer ); }
 

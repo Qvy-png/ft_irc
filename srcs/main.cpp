@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   main.cpp                                           :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: rdel-agu <rdel-agu@student.42.fr>          +#+  +:+       +#+        */
+/*   By: dasereno <dasereno@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/01/23 17:36:41 by rdel-agu          #+#    #+#             */
-/*   Updated: 2023/03/13 13:40:23 by rdel-agu         ###   ########.fr       */
+/*   Updated: 2023/03/13 14:58:42 by dasereno         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -100,7 +100,6 @@ int	main( int argc, char **argv ) {
 	server_address.sin_port = htons( port );
 	
 	// BINDING SOCKET AND LISTENING TO SOCKET CHECK
-
 	if ( bind(server_socket, ( struct sockaddr* ) &server_address, sizeof( server_address ) ) < 0) 
 		return ( printErr( "Error binding socket" ) );
 	if ( listen( server_socket, 10 ) < 0 )
@@ -165,7 +164,7 @@ int	main( int argc, char **argv ) {
 					
 					std::cout << YEL "je suis le client " CRESET << i << std::endl;
 					std::cout << buffer << std::endl;
-					client[i - 1]->setBuffer( buffer );
+					client[i - 1]->addBuffer( buffer );
 				}
 			}
 
@@ -191,7 +190,7 @@ int	main( int argc, char **argv ) {
 					tmpRest = tmpRest.erase( 0, 1 );
 					std::cout << "Rest of command: " << RED << tmpRest << CRESET << std::endl;
 					command = buffer1.substr( 0, pos );
-					std::cout << "command to execute next :" << GRN << command << std::endl;
+					std::cout << "command to execute next :" << GRN << command << CRESET << std::endl;
 					buffer1.erase( 0, pos + 1 );
 
 					if ( tmp == "PASS" )

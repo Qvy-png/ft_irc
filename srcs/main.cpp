@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   main.cpp                                           :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: dasereno <dasereno@student.42.fr>          +#+  +:+       +#+        */
+/*   By: rdel-agu <rdel-agu@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/01/23 17:36:41 by rdel-agu          #+#    #+#             */
-/*   Updated: 2023/03/13 14:58:42 by dasereno         ###   ########.fr       */
+/*   Updated: 2023/03/13 17:29:26 by rdel-agu         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -146,6 +146,7 @@ int	main( int argc, char **argv ) {
 		}
 
 		for (int i = 1; i < num_open_fds + 1; i++) {
+
 			if ( pfds[i].revents & POLLIN ) {
 				
 				int valread = recv( pfds[i].fd, &buffer, 1024, 0 );
@@ -197,10 +198,21 @@ int	main( int argc, char **argv ) {
 						client[i - 1]->setPass( tmpRest );
 
 					else if ( tmp == "NICK" ) {
-					
-					//TODO CHECK POUR SAVOIR SI LE NICK EST DEJA PRIT OU NON
-					
-						client[i - 1]->setNick( tmpRest );
+
+						bool NickIsFree;
+
+						NickIsFree = true;
+						if (client[i - 1]->getNick().empty()) {
+							
+							for (int j = 0; j < num_open_fds; j++) {
+								
+								if ( client[j]->getNick() == tmpRest )
+									send_msg(ERR_NICKNAMEINUSE( localhost, tmpRest), clients[i - 1]), NickIsFree = false;
+							}
+						}
+						if ( NickIsFree == true )
+							client[i - 1]->setNick(tmpRest);
+
 					}
 					else if ( tmp == "PING" )
 						send_msg(PONG(), clients[i - 1]);
@@ -225,6 +237,7 @@ int	main( int argc, char **argv ) {
 						if ( !client[i - 1]->getPass().empty() && !client[i - 1]->getNick().empty() && !client[i - 1]->getHost().empty() ) {
 							
 							if ( client[i - 1]->getPass() != password ) {
+
 								std::cout << GRNHB << password << BLUHB << client[i - 1]->getNick() << CRESET << std::endl;
 								send_msg(ERR_PASSWDMISMATCH( localhost, client[i - 1]->getNick() ), clients[i - 1] );
 							}

@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   main.cpp                                           :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: dasereno <dasereno@student.42.fr>          +#+  +:+       +#+        */
+/*   By: rdel-agu <rdel-agu@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/01/23 17:36:41 by rdel-agu          #+#    #+#             */
-/*   Updated: 2023/03/13 13:35:14 by dasereno         ###   ########.fr       */
+/*   Updated: 2023/03/13 13:40:23 by rdel-agu         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -63,6 +63,11 @@ int hasReturn( std::string str ) {
 	}
 }
 
+void signal_callback_handler( int signum ) {
+
+   std::cout << GRN " \n Bye bye!" CRESET << std::endl;
+   exit(signum);
+}
 
 int	main( int argc, char **argv ) {
 
@@ -120,6 +125,7 @@ int	main( int argc, char **argv ) {
 	
 	while ( true ) {
 
+		signal(SIGINT, signal_callback_handler);
 
 		int poll_count = poll(pfds, num_open_fds + 1, 10);
 
@@ -221,7 +227,8 @@ int	main( int argc, char **argv ) {
 							
 							if ( client[i - 1]->getPass() != password ) {
 								std::cout << GRNHB << password << BLUHB << client[i - 1]->getNick() << CRESET << std::endl;
-								ERR_PASSWDMISMATCH( client[i - 1]->getHost(), client[i - 1]->getNick() );}
+								send_msg(ERR_PASSWDMISMATCH( localhost, client[i - 1]->getNick() ), clients[i - 1] );
+							}
 							else {
 
 								// HANDSHAKE

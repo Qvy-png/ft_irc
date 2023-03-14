@@ -6,7 +6,7 @@
 /*   By: dasereno <dasereno@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/02/22 15:14:42 by rdel-agu          #+#    #+#             */
-/*   Updated: 2023/03/14 20:31:54 by dasereno         ###   ########.fr       */
+/*   Updated: 2023/03/14 21:00:53 by dasereno         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -15,6 +15,8 @@
 
 #include "canal.hpp"
 #include "ft_irc.h"
+
+class Canal;
 
 class Client {
     
@@ -32,7 +34,7 @@ class Client {
     public:
         Client( void );
         Client( const Client& );
-        Client( int read ); 
+        Client( int read );
         ~Client( );
         
         Client& operator=( const Client& );
@@ -47,14 +49,7 @@ class Client {
         void        addBuffer( char* );
         void        addCanal( Canal *canal) { _canals.push_back(canal); };
         std::vector<Canal *> getCanalList(void) { return (_canals); };
-        void        printCanals(void) {
-            std::cout << "Canal of " << _nick << std::endl;
-            for (std::vector<Canal *>::iterator it = _canals.begin(); it != _canals.end(); it++)
-            {
-                Canal *tmp = (*it);
-                std::cout << tmp->getName() << std::endl;
-            }
-        }
+        void        printCanals(void);
         bool        isInCanal(std::string canalName);
         Canal       *getCanal(std::string canalName);
         void        exitCanal(std::string canalName);

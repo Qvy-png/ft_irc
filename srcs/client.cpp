@@ -6,7 +6,7 @@
 /*   By: dasereno <dasereno@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/02/22 16:05:30 by rdel-agu          #+#    #+#             */
-/*   Updated: 2023/03/14 20:35:17 by dasereno         ###   ########.fr       */
+/*   Updated: 2023/03/14 21:01:22 by dasereno         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -19,6 +19,15 @@ Client::Client( int read ) :  _fd(read), _hs( false ), _buffer("")  { return ; }
 Client::Client( const Client& ref ) { *this = ref; }
 
 Client::~Client( void ) { return ; }
+
+void    Client::printCanals(void) {
+    std::cout << "Canal of " << _nick << std::endl;
+    for (std::vector<Canal *>::iterator it = _canals.begin(); it != _canals.end(); it++)
+    {
+        Canal *tmp = (*it);
+        std::cout << tmp->getName() << std::endl;
+    }
+}
 
 Client& Client::operator=( const Client& ref ) {
 

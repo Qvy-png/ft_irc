@@ -6,7 +6,7 @@
 /*   By: dasereno <dasereno@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/01/23 17:36:41 by rdel-agu          #+#    #+#             */
-/*   Updated: 2023/03/14 20:37:49 by dasereno         ###   ########.fr       */
+/*   Updated: 2023/03/14 21:36:59 by dasereno         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -106,6 +106,15 @@ bool	isClient(std::vector<Client *> clients, Client *cli ) {
 	return (false);
 }
 
+bool	isClient(std::vector<Client *> clients, std::string cli ) {
+	for (std::vector<Client *>::iterator it = clients.begin(); it != clients.end(); it++) {
+		Client *tmp = (*it);
+		if (tmp->getNick() == cli)
+			return (true);
+	}
+	return (false);
+}
+
 bool	isCanal(std::string canalName) {
 	return (canalName[0] == '#' || canalName[0] == '$');
 }
@@ -123,6 +132,49 @@ std::vector<std::string> split(std::string s, std::string delimiter) {
 
     res.push_back (s.substr (pos_start));
     return res;
+}
+
+void	kick(std::vector<Client *> client, int i, std::string tmpRest) {
+	std::cout << "Client #" << i << " KICK channel "<< tmpRest << std::endl;
+	// std::string args = tmpRest.substr(tmpRest.find(':') + 1, tmpRest.size());
+	std::string channel = tmpRest.substr(0, tmpRest.find(' '));
+	std::string toKick = tmpRest.substr(tmpRest.find(' ') + 1, tmpRest.find(':') - 1);
+	std::cout << tmpRest << std::endl;
+	std::cout << channel << std::endl;
+	std::cout << toKick << std::endl;
+	Canal *canal = client[i - 1]->getCanal(channel);
+	if (canal == NULL)
+		return ;
+	if (canal->getOp().getNick() != client[i - 1]->getNick())
+		return ;
+	Client *cli = canal->getClient(toKick);
+	if (cli == NULL)
+		return ;
+	if (cli->isInCanal(channel))
+	{
+		cli->exitCanal(channel);
+		std::cout << "il a quitte" << std::endl;
+	} else {
+		std::cout << "non kickage" << std::endl;
+	}
+						
+}
+
+void	privmsg(std::vector<Client *> client, std::vector<Canal *> canals, int i, std::string tmpRest) {
+	// MMARCHE QUE POUR LES CHANNELS ACTUELLEMENT
+	std::cout << "Client #" << i << " send a message." << std::endl;
+	std::string channel = tmpRest.substr(0, tmpRest.find(' '));
+	if (!client[i - 1]->isInCanal(channel))
+		return ;
+	std::string msg = tmpRest.substr(tmpRest.find(':'), tmpRest.size());
+	Message *newMsg = new Message (msg, *client[i - 1]);
+	Canal	*canal = getCanal(canals, channel);
+	canal->waitingMessages.push_back(newMsg);
+	for (std::vector<Client *>::iterator it = canal->clients.begin(); it != canal->clients.end(); it++) {
+		Client *cli = (*it);
+		std::cout << "->" + cli->getNick() << std::endl;
+	}
+	(*canal->waitingMessages.rbegin())->clients = canal->clients; 
 }
 
 int	main( int argc, char **argv ) {
@@ -218,6 +270,7 @@ int	main( int argc, char **argv ) {
 				if ( valread < 0 )
 					std::cerr << "Error reading from client #" << i << std::endl;
 				else if ( valread == 0) {
+					// FAIRE QUITTER TOUT SES CANNAUX
 					std::cout << "Client #" << i << " disconnected." << std::endl;
 					close( pfds[i].fd );
 					client.erase( client.begin() + i - 1 );
@@ -295,7 +348,8 @@ int	main( int argc, char **argv ) {
 					else if ( tmp == "NICK" ) {
 					
 					//TODO CHECK POUR SAVOIR SI LE NICK EST DEJA PRIT OU NON
-					
+						// => if (isClient(tmpRest))
+						//		Ne pas donner le nom
 						client[i - 1]->setNick( tmpRest );
 					}
 					else if ( tmp == "PING" )
@@ -338,6 +392,7 @@ int	main( int argc, char **argv ) {
 						}
 					}
 					else if (tmp == "QUIT") {
+						// FAIRE QUITTER TOUT SES CANAUX
 						std::cout << "Client #" << i << " disconnected. QUIT" << std::endl;
 						close( pfds[i].fd );
 						client.erase( client.begin() + i - 1 );
@@ -349,35 +404,9 @@ int	main( int argc, char **argv ) {
 						num_open_fds--;
 						break ;
 					} else if (tmp == "PRIVMSG") {
-						std::cout << "Client #" << i << " send a message." << std::endl;
-						std::string channel = tmpRest.substr(0, tmpRest.find(' '));
-						std::string msg = tmpRest.substr(tmpRest.find(':'), tmpRest.size());
-						Message *newMsg = new Message (msg, *client[i - 1]);
-						Canal	*canal = getCanal(canals, channel);
-						canal->waitingMessages.push_back(newMsg);
-						for (std::vector<Client *>::iterator it = canal->clients.begin(); it != canal->clients.end(); it++) {
-							Client *cli = (*it);
-							std::cout << "->" + cli->getNick() << std::endl;
-						}
-						// canal->waitingMessages
-						(*canal->waitingMessages.rbegin())->clients = canal->clients; 
-						// ====> Corriger ca : il faut pouvoir push dans la liste de waiting message la liste de clients.
+						privmsg(client, canals, i, tmpRest);
 					} else if (tmp == "KICK") {
-						std::cout << "Client #" << i << " PART channel "<< tmpRest << std::endl;
-						std::string args = tmpRest.substr(tmpRest.find(':') + 1, tmpRest.size());
-						std::string channel = args.substr(0, args.find(' '));
-						std::string toKick = args.substr(args.find(' ') + 1, args.size());
-						Canal *canal = client[i - 1]->getCanal(channel);
-						if (canal == NULL)
-							continue ;
-						if (canal->getOp().getNick() != client[i - 1]->getNick())
-							continue ;
-						// Client *cli = canal->getClient(toKick);
-						// if (cli == NULL)
-						// 	continue ;
-
-						// TROUVER LE FD DU MEC A KICK ET C'EST CHIANT PCK C'EST PAS DANS LE MEME TABLEAU
-						
+						kick(client, i, tmpRest);
 					}
 					
 					if ( client[i - 1]->getHs() == false ) {

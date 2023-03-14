@@ -6,7 +6,7 @@
 /*   By: dasereno <dasereno@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/03/13 16:58:43 by dasereno          #+#    #+#             */
-/*   Updated: 2023/03/14 20:34:05 by dasereno         ###   ########.fr       */
+/*   Updated: 2023/03/14 21:01:29 by dasereno         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -20,7 +20,7 @@ class Message;
 class Canal {
 
 	private:
-		int	_mode;
+		// int	_mode;
 		std::string	_name;
 		std::string	pass;
 		Client		&_op;

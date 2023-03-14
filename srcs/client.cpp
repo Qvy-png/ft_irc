@@ -6,7 +6,7 @@
 /*   By: dasereno <dasereno@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/02/22 16:05:30 by rdel-agu          #+#    #+#             */
-/*   Updated: 2023/03/13 19:42:11 by dasereno         ###   ########.fr       */
+/*   Updated: 2023/03/14 20:35:17 by dasereno         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -55,3 +55,34 @@ std::string Client::getBuffer( void ) { return ( _buffer ); }
 void Client::setHs( bool hs ) { _hs = hs; }
 
 bool Client::getHs( void ) { return ( _hs ); }
+
+bool Client::isInCanal(std::string canalName) {
+    for (std::vector<Canal *>::iterator it = _canals.begin(); it != _canals.end(); it++) {
+        Canal *tmp = *it;
+        if (tmp->getName() == canalName)
+            return (true);
+    }
+    return (false);
+}
+
+void Client::exitCanal(std::string canalName)
+{
+    for (std::vector<Canal *>::iterator it = _canals.begin(); it != _canals.end(); it++) {
+        Canal *tmp = *it;
+        if (tmp->getName() == canalName)
+        {
+            _canals.erase(it);
+            return ;
+        }
+    }
+}
+
+Canal   *Client::getCanal(std::string canalName)
+{
+    for (std::vector<Canal *>::iterator it = _canals.begin(); it != _canals.end(); it++) {
+        Canal *tmp = *it;
+        if (tmp->getName() == canalName)
+            return (tmp);
+    }
+    return (NULL);
+}

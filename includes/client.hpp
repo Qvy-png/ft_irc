@@ -6,7 +6,7 @@
 /*   By: dasereno <dasereno@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/02/22 15:14:42 by rdel-agu          #+#    #+#             */
-/*   Updated: 2023/03/13 19:58:10 by dasereno         ###   ########.fr       */
+/*   Updated: 2023/03/14 20:31:54 by dasereno         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -55,6 +55,9 @@ class Client {
                 std::cout << tmp->getName() << std::endl;
             }
         }
+        bool        isInCanal(std::string canalName);
+        Canal       *getCanal(std::string canalName);
+        void        exitCanal(std::string canalName);
         int         getFd( void );
         bool        getHs( void );
         std::string getPass( void );

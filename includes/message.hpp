@@ -6,7 +6,7 @@
 /*   By: dasereno <dasereno@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/03/13 15:16:33 by dasereno          #+#    #+#             */
-/*   Updated: 2023/03/13 19:28:28 by dasereno         ###   ########.fr       */
+/*   Updated: 2023/03/14 18:33:47 by dasereno         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -17,16 +17,24 @@ class Message {
 
 	private:
 		std::string	_message;
+		Client		&_sender;
 
     public: 
 		std::vector<Client *> clients;
-		// Message( void );
-		Message (std::string msg): _message(msg) { };
+		Message( void );
+		Message (std::string msg, Client &sender): _message(msg), _sender(sender) { };
 		// Message( const Message& );
 		~Message( void ) { return ;};
 
 		void		setMessage(std::string msg) { _message = msg; };
 		std::string	getMessage(void) { return (_message); };
 
-		Message&	operator=( const Message& );
+		Client		&getSender(void) { return (_sender); };
+
+		Message&	operator=( const Message& ref) { 
+			if ( this == &ref )
+				return ( *this );
+			*this = ref;
+			return ( *this );
+		};
 };

@@ -6,7 +6,7 @@
 /*   By: dasereno <dasereno@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/03/13 16:58:43 by dasereno          #+#    #+#             */
-/*   Updated: 2023/03/13 19:28:07 by dasereno         ###   ########.fr       */
+/*   Updated: 2023/03/14 20:34:05 by dasereno         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -27,7 +27,7 @@ class Canal {
 
     public: 
 		std::vector<Client *> clients;
-		std::vector<Message > waitingMessages;
+		std::vector<Message *> waitingMessages;
 
 		// Canal( void ) { return ; };
 		// Canal( std::string name ): _name(name) { };
@@ -37,6 +37,10 @@ class Canal {
 
 		std::string getName( void ) const { return (_name); };
 		void setName( std::string name ) { _name = name; };
+
+		Client *getClient(std::string name);
+
+		Client &getOp( void ) { return _op; };
 
 		Canal&	operator=( const Canal& rhs);
 		bool	operator==( const Canal& rhs );

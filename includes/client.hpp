@@ -6,7 +6,7 @@
 /*   By: rdel-agu <rdel-agu@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/02/22 15:14:42 by rdel-agu          #+#    #+#             */
-/*   Updated: 2023/03/14 10:52:13 by rdel-agu         ###   ########.fr       */
+/*   Updated: 2023/03/14 13:29:56 by rdel-agu         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -25,6 +25,7 @@ class Client {
         std::string _fullName;
         std::string _buffer;
         std::time_t _time;
+        std::string _mode;
 
     public:
 
@@ -44,6 +45,7 @@ class Client {
         void        setBuffer( char* );
         void        addBuffer( char* );
         void        setTime( std::time_t );
+        void        setMode( std::string );
 
         int         getFd( void );
         bool        getHs( void );
@@ -53,6 +55,7 @@ class Client {
         std::string getFullName( void );
         std::string getBuffer( void );
         std::time_t getTime( void );
+        std::string getMode( void );
 };
 
 #endif

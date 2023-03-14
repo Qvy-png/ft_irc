@@ -6,7 +6,7 @@
 /*   By: rdel-agu <rdel-agu@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/01/23 17:36:41 by rdel-agu          #+#    #+#             */
-/*   Updated: 2023/03/14 13:05:10 by rdel-agu         ###   ########.fr       */
+/*   Updated: 2023/03/14 15:44:26 by rdel-agu         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -232,7 +232,7 @@ int	main( int argc, char **argv ) {
 						std::time_t time = std::time(NULL);
 
 						if (client[i - 1]->getTime())
-							std::cout << BLU << client[i - 1]->getTime() - time << CRESET << std::endl;
+							std::cout << BLU <<  time - client[i - 1]->getTime() << CRESET << std::endl;
 						client[i - 1]->setTime( time );
 						std::cout << client[i - 1]->getTime() << std::endl;
 						send_msg(PONG(), clients[i - 1]);
@@ -262,13 +262,7 @@ int	main( int argc, char **argv ) {
 								
 								std::cout << GRNHB << password << BLUHB << client[i - 1]->getNick() << CRESET << std::endl;
 								send_msg(ERR_PASSWDMISMATCH( localhost, client[i - 1]->getNick() ), clients[i - 1] );
-								std::cout << "Client #" << i << " disconnected." << std::endl;
-								close( pfds[i].fd );
-								clients.erase( clients.begin() + i - 1 );
-								for (int j = i; j + 1 <= num_open_fds + 1; j++)
-									pfds[j] = pfds[j + 1];
-								num_open_fds--;
-								delete(client[i - 1]);
+								//faire la deconnexion du client
 							}
 							else {
 

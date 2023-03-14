@@ -6,7 +6,7 @@
 /*   By: rdel-agu <rdel-agu@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/01/23 17:36:41 by rdel-agu          #+#    #+#             */
-/*   Updated: 2023/03/13 17:29:26 by rdel-agu         ###   ########.fr       */
+/*   Updated: 2023/03/14 13:05:10 by rdel-agu         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -147,6 +147,16 @@ int	main( int argc, char **argv ) {
 
 		for (int i = 1; i < num_open_fds + 1; i++) {
 
+			if (client[i - 1]->getTime()) {
+				
+				std::time_t tmpTime = std::time(NULL);
+
+				if ( tmpTime - client[i - 1]->getTime() > 90 ){
+					
+					//faire la deconnexion
+				}
+			}
+			
 			if ( pfds[i].revents & POLLIN ) {
 				
 				int valread = recv( pfds[i].fd, &buffer, 1024, 0 );
@@ -206,16 +216,27 @@ int	main( int argc, char **argv ) {
 							
 							for (int j = 0; j < num_open_fds; j++) {
 								
-								if ( client[j]->getNick() == tmpRest )
-									send_msg(ERR_NICKNAMEINUSE( localhost, tmpRest), clients[i - 1]), NickIsFree = false;
+								if ( client[j]->getNick() == tmpRest ) {
+									
+									send_msg(ERR_NICKNAMEINUSE( localhost, tmpRest), clients[i - 1]);
+									NickIsFree = false;
+								}
 							}
 						}
 						if ( NickIsFree == true )
 							client[i - 1]->setNick(tmpRest);
 
 					}
-					else if ( tmp == "PING" )
+					else if ( tmp == "PING" ) {
+
+						std::time_t time = std::time(NULL);
+
+						if (client[i - 1]->getTime())
+							std::cout << BLU << client[i - 1]->getTime() - time << CRESET << std::endl;
+						client[i - 1]->setTime( time );
+						std::cout << client[i - 1]->getTime() << std::endl;
 						send_msg(PONG(), clients[i - 1]);
+					}
 						
 					else if (tmp == "USER") {
 						
@@ -236,10 +257,18 @@ int	main( int argc, char **argv ) {
 					
 						if ( !client[i - 1]->getPass().empty() && !client[i - 1]->getNick().empty() && !client[i - 1]->getHost().empty() ) {
 							
+							std::cout << BLUHB << "Je passe par ici! " << CRESET << std::endl;
 							if ( client[i - 1]->getPass() != password ) {
-
+								
 								std::cout << GRNHB << password << BLUHB << client[i - 1]->getNick() << CRESET << std::endl;
 								send_msg(ERR_PASSWDMISMATCH( localhost, client[i - 1]->getNick() ), clients[i - 1] );
+								std::cout << "Client #" << i << " disconnected." << std::endl;
+								close( pfds[i].fd );
+								clients.erase( clients.begin() + i - 1 );
+								for (int j = i; j + 1 <= num_open_fds + 1; j++)
+									pfds[j] = pfds[j + 1];
+								num_open_fds--;
+								delete(client[i - 1]);
 							}
 							else {
 
@@ -262,7 +291,7 @@ int	main( int argc, char **argv ) {
 			}
 		}
 	}
-
+	
 
 	return ( 0 );
 }

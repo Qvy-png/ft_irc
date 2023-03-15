@@ -6,7 +6,7 @@
 /*   By: dasereno <dasereno@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/03/13 17:39:26 by dasereno          #+#    #+#             */
-/*   Updated: 2023/03/14 20:35:31 by dasereno         ###   ########.fr       */
+/*   Updated: 2023/03/15 17:37:52 by dasereno         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -24,8 +24,34 @@ bool Canal::operator==( const Canal& rhs ) {
 	return (this->_name == rhs.getName());
 }
 
-// Canal::Canal( const Canal& ref ) { *this = ref; }
+void    Canal::deleteClient(Client *client)  {
+    for (std::vector<Client *>::iterator it = clients.begin(); it != clients.end(); it++) {
+        Client *cli = (*it);
+        if (cli->getNick() == client->getNick())
+            clients.erase(it);
+    }
+    if (clients.size() == 0) {
+        _canalManager->DeleteChannel(this);
+    }
+}
 
+bool    Canal::hasClient(Client *client)  {
+    for (std::vector<Client *>::iterator it = clients.begin(); it != clients.end(); it++) {
+        Client *cli = (*it);
+        if (cli->getNick() == client->getNick())
+            return true;
+    }
+    return false;
+}
+
+bool    Canal::hasClient(std::string nick)  {
+    for (std::vector<Client *>::iterator it = clients.begin(); it != clients.end(); it++) {
+        Client *cli = (*it);
+        if (cli->getNick() == nick)
+            return true;
+    }
+    return false;
+}
 
 Client *Canal::getClient(std::string name) {
     for (std::vector<Client *>::iterator it = clients.begin(); it != clients.end(); it++) {

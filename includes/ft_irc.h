@@ -6,7 +6,7 @@
 /*   By: dasereno <dasereno@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/01/23 17:37:21 by rdel-agu          #+#    #+#             */
-/*   Updated: 2023/03/14 17:16:18 by dasereno         ###   ########.fr       */
+/*   Updated: 2023/03/15 17:17:36 by dasereno         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -42,6 +42,7 @@
 #include "client.hpp"
 #include "canal.hpp"
 #include "message.hpp"
+#include "canalManager.hpp"
 
 // data
 

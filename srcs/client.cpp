@@ -6,7 +6,7 @@
 /*   By: dasereno <dasereno@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/02/22 16:05:30 by rdel-agu          #+#    #+#             */
-/*   Updated: 2023/03/14 21:01:22 by dasereno         ###   ########.fr       */
+/*   Updated: 2023/03/15 17:42:15 by dasereno         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -19,15 +19,6 @@ Client::Client( int read ) :  _fd(read), _hs( false ), _buffer("")  { return ; }
 Client::Client( const Client& ref ) { *this = ref; }
 
 Client::~Client( void ) { return ; }
-
-void    Client::printCanals(void) {
-    std::cout << "Canal of " << _nick << std::endl;
-    for (std::vector<Canal *>::iterator it = _canals.begin(); it != _canals.end(); it++)
-    {
-        Canal *tmp = (*it);
-        std::cout << tmp->getName() << std::endl;
-    }
-}
 
 Client& Client::operator=( const Client& ref ) {
 
@@ -64,34 +55,3 @@ std::string Client::getBuffer( void ) { return ( _buffer ); }
 void Client::setHs( bool hs ) { _hs = hs; }
 
 bool Client::getHs( void ) { return ( _hs ); }
-
-bool Client::isInCanal(std::string canalName) {
-    for (std::vector<Canal *>::iterator it = _canals.begin(); it != _canals.end(); it++) {
-        Canal *tmp = *it;
-        if (tmp->getName() == canalName)
-            return (true);
-    }
-    return (false);
-}
-
-void Client::exitCanal(std::string canalName)
-{
-    for (std::vector<Canal *>::iterator it = _canals.begin(); it != _canals.end(); it++) {
-        Canal *tmp = *it;
-        if (tmp->getName() == canalName)
-        {
-            _canals.erase(it);
-            return ;
-        }
-    }
-}
-
-Canal   *Client::getCanal(std::string canalName)
-{
-    for (std::vector<Canal *>::iterator it = _canals.begin(); it != _canals.end(); it++) {
-        Canal *tmp = *it;
-        if (tmp->getName() == canalName)
-            return (tmp);
-    }
-    return (NULL);
-}

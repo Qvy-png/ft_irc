@@ -6,7 +6,7 @@
 /*   By: dasereno <dasereno@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/02/22 15:14:42 by rdel-agu          #+#    #+#             */
-/*   Updated: 2023/03/14 21:00:53 by dasereno         ###   ########.fr       */
+/*   Updated: 2023/03/15 17:38:36 by dasereno         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -17,11 +17,11 @@
 #include "ft_irc.h"
 
 class Canal;
+class Message;
 
 class Client {
     
     private:
-
         int         _fd;
         bool        _hs;
         std::string _pass;
@@ -30,6 +30,8 @@ class Client {
         std::string _fullName;
         std::string _buffer;
         std::vector<Canal *> _canals;
+        std::vector<Message *> _waitingMessages;
+        bool   _op;
 
     public:
         Client( void );
@@ -47,14 +49,11 @@ class Client {
         void        setFullName( std::string  );
         void        setBuffer( char* );
         void        addBuffer( char* );
-        void        addCanal( Canal *canal) { _canals.push_back(canal); };
-        std::vector<Canal *> getCanalList(void) { return (_canals); };
-        void        printCanals(void);
-        bool        isInCanal(std::string canalName);
-        Canal       *getCanal(std::string canalName);
-        void        exitCanal(std::string canalName);
+        void        pushMessage(Message *msg) { _waitingMessages.push_back(msg); };
         int         getFd( void );
         bool        getHs( void );
+        bool        getOp( void) { return _op; };
+        void        setOp( bool op ) { _op = op; };
         std::string getPass( void );
         std::string getNick( void );
         std::string getHost( void );

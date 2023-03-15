@@ -6,7 +6,7 @@
 /*   By: dasereno <dasereno@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/01/23 17:36:41 by rdel-agu          #+#    #+#             */
-/*   Updated: 2023/03/14 21:36:59 by dasereno         ###   ########.fr       */
+/*   Updated: 2023/03/15 19:12:18 by dasereno         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -134,15 +134,19 @@ std::vector<std::string> split(std::string s, std::string delimiter) {
     return res;
 }
 
-void	kick(std::vector<Client *> client, int i, std::string tmpRest) {
+void	kick(std::vector<Client *> client, int i, std::string tmpRest, CanalManager *canalManager) {
 	std::cout << "Client #" << i << " KICK channel "<< tmpRest << std::endl;
 	// std::string args = tmpRest.substr(tmpRest.find(':') + 1, tmpRest.size());
 	std::string channel = tmpRest.substr(0, tmpRest.find(' '));
-	std::string toKick = tmpRest.substr(tmpRest.find(' ') + 1, tmpRest.find(':') - 1);
+	std::string toKick = tmpRest.substr(tmpRest.find(' ') + 1, tmpRest.size());
+	if (toKick.find(':') != toKick.npos)
+		toKick.erase(toKick.find(':'));
+	if (toKick.find(' ') != toKick.npos)
+		toKick.erase(toKick.find(' '));
 	std::cout << tmpRest << std::endl;
 	std::cout << channel << std::endl;
 	std::cout << toKick << std::endl;
-	Canal *canal = client[i - 1]->getCanal(channel);
+	Canal *canal = canalManager->GetChannel(channel);
 	if (canal == NULL)
 		return ;
 	if (canal->getOp().getNick() != client[i - 1]->getNick())
@@ -150,9 +154,9 @@ void	kick(std::vector<Client *> client, int i, std::string tmpRest) {
 	Client *cli = canal->getClient(toKick);
 	if (cli == NULL)
 		return ;
-	if (cli->isInCanal(channel))
+	if (canal->hasClient(cli))
 	{
-		cli->exitCanal(channel);
+		canal->deleteClient(cli);
 		std::cout << "il a quitte" << std::endl;
 	} else {
 		std::cout << "non kickage" << std::endl;
@@ -160,15 +164,43 @@ void	kick(std::vector<Client *> client, int i, std::string tmpRest) {
 						
 }
 
-void	privmsg(std::vector<Client *> client, std::vector<Canal *> canals, int i, std::string tmpRest) {
-	// MMARCHE QUE POUR LES CHANNELS ACTUELLEMENT
-	std::cout << "Client #" << i << " send a message." << std::endl;
-	std::string channel = tmpRest.substr(0, tmpRest.find(' '));
-	if (!client[i - 1]->isInCanal(channel))
+Client	*getClient(std::vector<Client *> clients, std::string name) {
+	for (std::vector<Client *>::iterator it = clients.begin(); it != clients.end(); it++) {
+		Client *tmp = (*it);
+		if (name == tmp->getNick()) {
+			return tmp;
+		}
+	}
+	return NULL;
+}
+
+void	privmsg_client(std::vector<Client *> client, int i, std::string tmpRest)
+{
+	std::string receiver = tmpRest.substr(0, tmpRest.find(' '));
+	if (!isClient(client, receiver))
 		return ;
 	std::string msg = tmpRest.substr(tmpRest.find(':'), tmpRest.size());
 	Message *newMsg = new Message (msg, *client[i - 1]);
-	Canal	*canal = getCanal(canals, channel);
+	Client *cli = getClient(client, receiver);
+	if (cli == NULL)
+		return ;
+	cli->pushMessage(newMsg);
+
+}
+
+void	privmsg(std::vector<Client *> client, CanalManager *canalManager, int i, std::string tmpRest) {
+	// MMARCHE QUE POUR LES CHANNELS ACTUELLEMENT
+	std::cout << "Client #" << i << " send a message." << std::endl;
+	std::string channel = tmpRest.substr(0, tmpRest.find(' '));
+	Canal	*canal = canalManager->GetChannel(channel);
+	if (!canal)
+		return (privmsg_client(client, i, tmpRest));
+	if (!canal->hasClient(client[i - 1]))
+		return ;
+	std::string msg = tmpRest.substr(tmpRest.find(':'), tmpRest.size());
+	Message *newMsg = new Message (msg, *client[i - 1]);
+	if (!canal)
+		return ;
 	canal->waitingMessages.push_back(newMsg);
 	for (std::vector<Client *>::iterator it = canal->clients.begin(); it != canal->clients.end(); it++) {
 		Client *cli = (*it);
@@ -177,11 +209,13 @@ void	privmsg(std::vector<Client *> client, std::vector<Canal *> canals, int i, s
 	(*canal->waitingMessages.rbegin())->clients = canal->clients; 
 }
 
+
 int	main( int argc, char **argv ) {
 
 	int			 		server_socket;
 	struct sockaddr_in6	server_address;
-	socklen_t					addrlen = sizeof( server_address );
+	socklen_t			addrlen = sizeof( server_address );
+	CanalManager		*canalManager = new CanalManager();
 	
 
 	if ( argc != 3 )
@@ -222,7 +256,7 @@ int	main( int argc, char **argv ) {
 	int					num_open_fds = 0, current_client = -1;
 	struct pollfd		pfds[MAX_CLIENTS];
 	std::vector<int>	clients;
-	std::vector<Canal *>	canals;
+	// std::vector<Canal *>	canals;
 	char				buffer[1025];
 
 	bzero(buffer, 1025);
@@ -289,10 +323,12 @@ int	main( int argc, char **argv ) {
 
 			if ( pfds[i].revents & POLLOUT ) {
 				// LIMITE DE SEND DE 1024CHAR;
-				std::vector<Canal *> canals = client[i - 1]->getCanalList();
+				std::map<std::string, Canal *> canals = canalManager->GetChannels();
 
-				for (std::vector<Canal *>::iterator it = canals.begin(); it != canals.end(); it++) {
-					Canal *tmp = (*it);
+				for (std::map<std::string, Canal *>::iterator it = canals.begin(); it != canals.end(); it++) {
+					Canal *tmp = (*it).second;
+					if (!tmp->hasClient(client[i - 1]))
+						continue ;
 					for (std::vector<Message *>::iterator it_msg = tmp->waitingMessages.begin(); it_msg != tmp->waitingMessages.end(); it_msg++) {
 						Message *msg = (*it_msg);
 						if (isClient(msg->clients, client[i - 1]) && msg->getSender().getNick() != client[i - 1]->getNick()) {
@@ -371,24 +407,25 @@ int	main( int argc, char **argv ) {
 						}			
 					} else if (tmp == "JOIN") {
 						std::cout << "Client #" << i << " try to join " << tmpRest << std::endl;
-						if (!canalExist(canals, tmpRest))
-						{
-							canals.push_back(new Canal (tmpRest, *client[i - 1]));
-							client[i - 1]->addCanal(getCanal(canals, tmpRest));
-							client[i - 1]->printCanals();
-							getCanal(canals, tmpRest)->clients.push_back(client[i - 1]);
-						} else {
-							client[i - 1]->addCanal(getCanal(canals, tmpRest));
-							getCanal(canals, tmpRest)->clients.push_back(client[i - 1]);
+						Canal *canal = canalManager->GetChannel(tmpRest);
+						if (canal == NULL) {
+							canal = canalManager->CreateChannel(tmpRest, client[i - 1]);
+							canal->pushClient(client[i - 1]);
+						} else if (!canal->hasClient(client[i - 1])) {
+							canal->pushClient(client[i - 1]);
 						}
 					} else if (tmp == "PART") {
 						std::cout << "Client #" << i << " PART channel "<< tmpRest << std::endl;
 						std::string args = tmpRest.substr(tmpRest.find(':') + 1, tmpRest.size());
 						std::vector<std::string> channels = split(args, " ");
-						for (std::vector<std::string>::iterator it = channels.begin(); it != channels.end(); it++) {
-							std::string name = *it;
-							if (client[i - 1]->isInCanal(name))
-								client[i - 1]->exitCanal(name);
+						std::map<std::string, Canal *> canals = canalManager->GetChannels();
+						for (std::map<std::string, Canal *>::iterator it = canals.begin(); it != canals.end(); it++) {
+							Canal *canal = (*it).second;
+							if (canal->hasClient(client[i - 1]))
+							{
+								canal->deleteClient(client[i - 1]);
+								send_msg(":" + client[i - 1]->getNick() + "!user@host PART " + canal->getName() + " " + "\r\n", clients[i - 1]);
+							}
 						}
 					}
 					else if (tmp == "QUIT") {
@@ -404,9 +441,20 @@ int	main( int argc, char **argv ) {
 						num_open_fds--;
 						break ;
 					} else if (tmp == "PRIVMSG") {
-						privmsg(client, canals, i, tmpRest);
+						privmsg(client, canalManager, i, tmpRest);
 					} else if (tmp == "KICK") {
-						kick(client, i, tmpRest);
+						kick(client, i, tmpRest, canalManager);
+					} else if (tmp == "OPER") {
+						std::string	name = tmpRest.substr(0, tmpRest.find(' '));
+						std::string pass = tmpRest.substr(tmpRest.find(' ') + 1, tmpRest.size());
+						std::cout << name << " : " << pass << std::endl;
+						if (pass == "6432") {
+							Client *cli = getClient(client, name);
+							if (cli != NULL) {
+								cli->setOp(true);
+								std::cout << "op state : " << cli->getOp() << std::endl;
+							}
+						}
 					}
 					
 					if ( client[i - 1]->getHs() == false ) {

@@ -6,7 +6,7 @@
 /*   By: dasereno <dasereno@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/03/13 16:58:43 by dasereno          #+#    #+#             */
-/*   Updated: 2023/03/14 21:01:29 by dasereno         ###   ########.fr       */
+/*   Updated: 2023/03/15 17:38:05 by dasereno         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -16,23 +16,22 @@
 
 class Client;
 class Message;
+class CanalManager;
 
 class Canal {
 
 	private:
 		// int	_mode;
-		std::string	_name;
-		std::string	pass;
-		Client		&_op;
+		std::string		_name;
+		std::string		pass;
+		Client			&_op;
+		CanalManager	*_canalManager;
 
     public: 
 		std::vector<Client *> clients;
 		std::vector<Message *> waitingMessages;
 
-		// Canal( void ) { return ; };
-		// Canal( std::string name ): _name(name) { };
-		Canal( std::string name, Client & op ): _name(name), _op(op) { };
-		// Canal( Canal const& ref );
+		Canal( std::string name, Client & op, CanalManager *cm ): _name(name), _op(op), _canalManager(cm) { };
 		~Canal( void ) { return ;};
 
 		std::string getName( void ) const { return (_name); };
@@ -40,6 +39,10 @@ class Canal {
 
 		Client *getClient(std::string name);
 
+		void	deleteClient(Client *);
+		bool	hasClient(Client *);
+		bool	hasClient(std::string);
+		void	pushClient(Client *client) { clients.push_back(client); };
 		Client &getOp( void ) { return _op; };
 
 		Canal&	operator=( const Canal& rhs);

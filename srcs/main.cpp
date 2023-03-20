@@ -6,7 +6,7 @@
 /*   By: rdel-agu <rdel-agu@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/01/23 17:36:41 by rdel-agu          #+#    #+#             */
-/*   Updated: 2023/03/20 14:45:17 by rdel-agu         ###   ########.fr       */
+/*   Updated: 2023/03/20 14:48:07 by rdel-agu         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -491,6 +491,15 @@ int	main( int argc, char **argv ) {
 							if ( client[i - 1]->getPass() != password ) {
 								std::cout << GRNHB << password << BLUHB << client[i - 1]->getNick() << CRESET << std::endl;
 								send_msg(ERR_PASSWDMISMATCH( localhost, client[i - 1]->getNick() ), clients[i - 1] );
+
+								//faire la deconnexion du client
+								std::cout << "Client #" << i << " timout." << std::endl;
+								close( pfds[i].fd );
+								client.erase( client.begin() + i - 1 );
+								clients.erase( clients.begin() + i - 1 );
+								for (int j = i; j + 1 <= num_open_fds + 1; j++)
+									pfds[j] = pfds[j + 1];
+								num_open_fds--;
 							}
 							else {
 

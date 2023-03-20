@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   main.cpp                                           :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: dasereno <dasereno@student.42.fr>          +#+  +:+       +#+        */
+/*   By: rdel-agu <rdel-agu@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/01/23 17:36:41 by rdel-agu          #+#    #+#             */
-/*   Updated: 2023/03/15 19:12:18 by dasereno         ###   ########.fr       */
+/*   Updated: 2023/03/20 14:45:17 by rdel-agu         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -296,6 +296,22 @@ int	main( int argc, char **argv ) {
 		}
 
 		for (int i = 1; i < num_open_fds + 1; i++) {
+
+			if (client[i - 1]->getTime()) {
+				
+				std::time_t tmpTime = std::time(NULL);
+
+				if ( tmpTime - client[i - 1]->getTime() > 90 ){
+					
+					std::cout << "Client #" << i << " timout." << std::endl;
+					close( pfds[i].fd );
+					client.erase( client.begin() + i - 1 );
+					clients.erase( clients.begin() + i - 1 );
+					for (int j = i; j + 1 <= num_open_fds + 1; j++)
+						pfds[j] = pfds[j + 1];
+					num_open_fds--;
+				}
+			}
 			pfds[i].events = event[ev]; 
 			if ( pfds[i].revents & POLLIN ) {
 				
@@ -388,10 +404,18 @@ int	main( int argc, char **argv ) {
 						//		Ne pas donner le nom
 						client[i - 1]->setNick( tmpRest );
 					}
-					else if ( tmp == "PING" )
-						send_msg(PONG(), clients[i - 1]);
-					
+					else if ( tmp == "PING" ) {
+						
+						// send_msg(PONG(), clients[i - 1]);
+						
+						std::time_t time = std::time(NULL);
 
+						if (client[i - 1]->getTime())
+							std::cout << BLU <<  time - client[i - 1]->getTime() << CRESET << std::endl;
+						client[i - 1]->setTime( time );
+						std::cout << client[i - 1]->getTime() << std::endl;
+						send_msg(PONG(), clients[i - 1]);
+					}
 					else if (tmp == "USER") {
 						
 						std::stringstream	userSplitter( tmpRest );
@@ -406,6 +430,7 @@ int	main( int argc, char **argv ) {
 							j++;
 						}			
 					} else if (tmp == "JOIN") {
+						
 						std::cout << "Client #" << i << " try to join " << tmpRest << std::endl;
 						Canal *canal = canalManager->GetChannel(tmpRest);
 						if (canal == NULL) {
@@ -415,6 +440,7 @@ int	main( int argc, char **argv ) {
 							canal->pushClient(client[i - 1]);
 						}
 					} else if (tmp == "PART") {
+
 						std::cout << "Client #" << i << " PART channel "<< tmpRest << std::endl;
 						std::string args = tmpRest.substr(tmpRest.find(':') + 1, tmpRest.size());
 						std::vector<std::string> channels = split(args, " ");
@@ -429,6 +455,7 @@ int	main( int argc, char **argv ) {
 						}
 					}
 					else if (tmp == "QUIT") {
+						
 						// FAIRE QUITTER TOUT SES CANAUX
 						std::cout << "Client #" << i << " disconnected. QUIT" << std::endl;
 						close( pfds[i].fd );

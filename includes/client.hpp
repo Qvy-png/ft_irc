@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   client.hpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: dasereno <dasereno@student.42.fr>          +#+  +:+       +#+        */
+/*   By: rdel-agu <rdel-agu@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/02/22 15:14:42 by rdel-agu          #+#    #+#             */
-/*   Updated: 2023/03/15 17:38:36 by dasereno         ###   ########.fr       */
+/*   Updated: 2023/03/20 14:27:56 by rdel-agu         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -22,16 +22,18 @@ class Message;
 class Client {
     
     private:
-        int         _fd;
-        bool        _hs;
-        std::string _pass;
-        std::string _nick;
-        std::string _host;
-        std::string _fullName;
-        std::string _buffer;
-        std::vector<Canal *> _canals;
-        std::vector<Message *> _waitingMessages;
-        bool   _op;
+        int                     _fd;
+        bool                    _hs;
+        std::string             _pass;
+        std::string             _nick;
+        std::string             _host;
+        std::string             _fullName;
+        std::string             _buffer;
+        std::vector<Canal *>    _canals;
+        std::vector<Message *>  _waitingMessages;
+        bool                    _op;
+        std::time_t             _time;
+        std::string             _mode;
 
     public:
         Client( void );
@@ -39,7 +41,7 @@ class Client {
         Client( int read );
         ~Client( );
         
-        Client& operator=( const Client& );
+        Client&     operator=( const Client& );
         
         void        setFd( int );
         void        setHs( bool );
@@ -54,11 +56,16 @@ class Client {
         bool        getHs( void );
         bool        getOp( void) { return _op; };
         void        setOp( bool op ) { _op = op; };
+        void        setTime( std::time_t );
+        void        setMode( std::string );
+        
         std::string getPass( void );
         std::string getNick( void );
         std::string getHost( void );
         std::string getFullName( void );
         std::string getBuffer( void );
+        std::time_t getTime( void );
+        std::string getMode( void );
 };
 
 #endif

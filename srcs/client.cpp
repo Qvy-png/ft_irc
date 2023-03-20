@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   client.cpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: dasereno <dasereno@student.42.fr>          +#+  +:+       +#+        */
+/*   By: rdel-agu <rdel-agu@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/02/22 16:05:30 by rdel-agu          #+#    #+#             */
-/*   Updated: 2023/03/15 17:42:15 by dasereno         ###   ########.fr       */
+/*   Updated: 2023/03/20 14:26:33 by rdel-agu         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -55,3 +55,11 @@ std::string Client::getBuffer( void ) { return ( _buffer ); }
 void Client::setHs( bool hs ) { _hs = hs; }
 
 bool Client::getHs( void ) { return ( _hs ); }
+
+void Client::setTime( std::time_t time ) { _time = time; }
+
+std::time_t Client::getTime( void ) { return ( _time ); }
+
+void Client::setMode( std::string mode ) { _mode = mode; }
+
+std::string Client::getMode( void ) { return ( _mode ); }

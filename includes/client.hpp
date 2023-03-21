@@ -6,7 +6,7 @@
 /*   By: rdel-agu <rdel-agu@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/02/22 15:14:42 by rdel-agu          #+#    #+#             */
-/*   Updated: 2023/03/20 14:27:56 by rdel-agu         ###   ########.fr       */
+/*   Updated: 2023/03/21 13:04:01 by rdel-agu         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -32,6 +32,7 @@ class Client {
         std::vector<Canal *>    _canals;
         std::vector<Message *>  _waitingMessages;
         bool                    _op;
+        bool                    _hasTime;
         std::time_t             _time;
         std::string             _mode;
 
@@ -58,6 +59,8 @@ class Client {
         void        setOp( bool op ) { _op = op; };
         void        setTime( std::time_t );
         void        setMode( std::string );
+        void        setHasTime( bool );
+
         
         std::string getPass( void );
         std::string getNick( void );
@@ -66,6 +69,7 @@ class Client {
         std::string getBuffer( void );
         std::time_t getTime( void );
         std::string getMode( void );
+        bool        getHasTime( void );
 };
 
 #endif

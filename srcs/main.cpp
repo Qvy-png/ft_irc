@@ -6,7 +6,7 @@
 /*   By: rdel-agu <rdel-agu@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/01/23 17:36:41 by rdel-agu          #+#    #+#             */
-/*   Updated: 2023/03/20 14:48:07 by rdel-agu         ###   ########.fr       */
+/*   Updated: 2023/03/21 13:07:37 by rdel-agu         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -63,10 +63,14 @@ int hasReturn( std::string str ) {
 	}
 }
 
+bool quit = true;
+
 void signal_callback_handler( int signum ) {
 
-   std::cout << GRN " \n Bye bye!" CRESET << std::endl;
-   exit(signum);
+	std::cout << GRN " \n Bye bye!" CRESET << std::endl;
+	// if ( signum == SIGQUIT )
+	// 	quit = false;
+	exit(signum);
 }
 
 bool canalExist(std::vector<Canal *> canals, std::string canalName) {
@@ -210,6 +214,7 @@ void	privmsg(std::vector<Client *> client, CanalManager *canalManager, int i, st
 }
 
 
+
 int	main( int argc, char **argv ) {
 
 	int			 		server_socket;
@@ -272,7 +277,8 @@ int	main( int argc, char **argv ) {
 
 	pfds[0].fd = server_socket;
 	pfds[0].events = POLLIN;
-	while ( true ) {
+	while ( quit ) {
+		
 		signal(SIGINT, signal_callback_handler);
 
 		int poll_count = poll(pfds, num_open_fds + 1, 10);
@@ -410,11 +416,12 @@ int	main( int argc, char **argv ) {
 						
 						std::time_t time = std::time(NULL);
 
-						if (client[i - 1]->getTime())
+						if (client[i - 1]->getHasTime() == true )
 							std::cout << BLU <<  time - client[i - 1]->getTime() << CRESET << std::endl;
 						client[i - 1]->setTime( time );
 						std::cout << client[i - 1]->getTime() << std::endl;
 						send_msg(PONG(), clients[i - 1]);
+						client[i - 1]->setHasTime( true );
 					}
 					else if (tmp == "USER") {
 						

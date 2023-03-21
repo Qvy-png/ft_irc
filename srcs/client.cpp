@@ -6,15 +6,15 @@
 /*   By: rdel-agu <rdel-agu@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/02/22 16:05:30 by rdel-agu          #+#    #+#             */
-/*   Updated: 2023/03/20 14:26:33 by rdel-agu         ###   ########.fr       */
+/*   Updated: 2023/03/21 13:05:06 by rdel-agu         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "../includes/ft_irc.h"
 
-Client::Client( void ) : _hs( false ), _buffer("") { return ; }
+Client::Client( void ) : _hs( false ), _buffer(""), _hasTime( false ) { return ; }
 
-Client::Client( int read ) :  _fd(read), _hs( false ), _buffer("")  { return ; }
+Client::Client( int read ) :  _fd(read), _hs( false ), _buffer(""), _hasTime( false )  { return ; }
 
 Client::Client( const Client& ref ) { *this = ref; }
 
@@ -63,3 +63,7 @@ std::time_t Client::getTime( void ) { return ( _time ); }
 void Client::setMode( std::string mode ) { _mode = mode; }
 
 std::string Client::getMode( void ) { return ( _mode ); }
+
+void Client::setHasTime( bool hasTime ) { _hasTime = hasTime; }
+
+bool Client::getHasTime( void ) { return ( _hasTime ); }

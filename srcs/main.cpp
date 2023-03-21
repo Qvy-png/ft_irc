@@ -6,7 +6,7 @@
 /*   By: rdel-agu <rdel-agu@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/01/23 17:36:41 by rdel-agu          #+#    #+#             */
-/*   Updated: 2023/03/21 13:07:37 by rdel-agu         ###   ########.fr       */
+/*   Updated: 2023/03/21 13:10:34 by rdel-agu         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -405,10 +405,22 @@ int	main( int argc, char **argv ) {
 
 					else if ( tmp == "NICK" ) {
 					
-					//TODO CHECK POUR SAVOIR SI LE NICK EST DEJA PRIT OU NON
-						// => if (isClient(tmpRest))
-						//		Ne pas donner le nom
-						client[i - 1]->setNick( tmpRest );
+						bool NickIsFree;
+
+						NickIsFree = true;
+						if (client[i - 1]->getNick().empty()) {
+							
+							for (int j = 0; j < num_open_fds; j++) {
+								
+								if ( client[j]->getNick() == tmpRest ) {
+									
+									send_msg(ERR_NICKNAMEINUSE( localhost, tmpRest), clients[i - 1]);
+									NickIsFree = false;
+								}
+							}
+						}
+						if ( NickIsFree == true )
+							client[i - 1]->setNick(tmpRest);
 					}
 					else if ( tmp == "PING" ) {
 						

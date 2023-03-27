@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   main.cpp                                           :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: rdel-agu <rdel-agu@student.42.fr>          +#+  +:+       +#+        */
+/*   By: dasereno <dasereno@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/01/23 17:36:41 by rdel-agu          #+#    #+#             */
-/*   Updated: 2023/03/21 13:10:34 by rdel-agu         ###   ########.fr       */
+/*   Updated: 2023/03/27 14:38:39 by dasereno         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -454,7 +454,6 @@ int	main( int argc, char **argv ) {
 						Canal *canal = canalManager->GetChannel(tmpRest);
 						if (canal == NULL) {
 							canal = canalManager->CreateChannel(tmpRest, client[i - 1]);
-							canal->pushClient(client[i - 1]);
 						} else if (!canal->hasClient(client[i - 1])) {
 							canal->pushClient(client[i - 1]);
 						}

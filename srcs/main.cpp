@@ -6,7 +6,7 @@
 /*   By: rdel-agu <rdel-agu@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/01/23 17:36:41 by rdel-agu          #+#    #+#             */
-/*   Updated: 2023/04/03 13:52:38 by rdel-agu         ###   ########.fr       */
+/*   Updated: 2023/04/03 16:41:28 by rdel-agu         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -501,6 +501,21 @@ int	main( int argc, char **argv ) {
 								std::cout << "op state : " << cli->getOp() << std::endl;
 							}
 						}
+					}
+					else if (tmp == "WHOIS") {
+					
+						int j = 1;
+						//TODO
+						while ( j <= num_open_fds ) {
+							
+							if ( client[j - 1]->getNick() == tmpRest ) {
+								
+								std::cout << client[i - 1]->getHost() << " et " << client[i-1]->getNick() << std::endl;
+								send_msg( RPL_WHOISUSER( client[j - 1]->getHost(), client[j - 1]->getNick(), client[j - 1]->getNick(), client[j - 1]->getHost(), client[j - 1]->getFullName() ), clients[ i - 1 ] );
+							}
+							j++;
+						}
+						
 					}
 					
 					if ( client[i - 1]->getHs() == false ) {

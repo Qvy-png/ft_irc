@@ -6,7 +6,7 @@
 /*   By: rdel-agu <rdel-agu@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/01/23 17:36:41 by rdel-agu          #+#    #+#             */
-/*   Updated: 2023/03/21 13:10:34 by rdel-agu         ###   ########.fr       */
+/*   Updated: 2023/04/03 13:52:38 by rdel-agu         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -303,7 +303,7 @@ int	main( int argc, char **argv ) {
 
 		for (int i = 1; i < num_open_fds + 1; i++) {
 
-			if (client[i - 1]->getTime()) {
+			if (client[i - 1]->getHasTime() == true ) {
 				
 				std::time_t tmpTime = std::time(NULL);
 

@@ -6,7 +6,7 @@
 /*   By: dasereno <dasereno@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/03/13 17:39:26 by dasereno          #+#    #+#             */
-/*   Updated: 2023/03/15 17:37:52 by dasereno         ###   ########.fr       */
+/*   Updated: 2023/04/04 15:21:20 by dasereno         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -60,4 +60,19 @@ Client *Canal::getClient(std::string name) {
             return (tmp);
     }
     return (NULL);
+}
+
+void    Canal::banClient(std::string name) {
+    if (this->hasClient(name)) {
+        this->deleteClient(this->getClient(name));
+    }
+}
+
+void    Canal::printBanned(void) {
+    std::vector<Client *>::iterator it = _banned.begin();
+
+    for (; it != _banned.end(); it++) {
+        Client *tmp = (*it);
+        std::cout << tmp->getNick() << std::endl;
+    }    
 }

@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   client.hpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: rdel-agu <rdel-agu@student.42.fr>          +#+  +:+       +#+        */
+/*   By: dasereno <dasereno@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/02/22 15:14:42 by rdel-agu          #+#    #+#             */
-/*   Updated: 2023/03/21 13:04:01 by rdel-agu         ###   ########.fr       */
+/*   Updated: 2023/04/04 16:19:53 by dasereno         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -22,19 +22,20 @@ class Message;
 class Client {
     
     private:
-        int                     _fd;
-        bool                    _hs;
-        std::string             _pass;
-        std::string             _nick;
-        std::string             _host;
-        std::string             _fullName;
-        std::string             _buffer;
-        std::vector<Canal *>    _canals;
-        std::vector<Message *>  _waitingMessages;
-        bool                    _op;
-        bool                    _hasTime;
-        std::time_t             _time;
-        std::string             _mode;
+        int                         _fd;
+        bool                        _hs;
+        std::string                 _pass;
+        std::string                 _nick;
+        std::string                 _host;
+        std::string                 _fullName;
+        std::string                 _buffer;
+        std::vector<Canal *>        _canals;
+        std::vector<Message *>      _waitingMessages;
+        bool                        _op;
+        bool                        _hasTime;
+        std::time_t                 _time;
+        std::string                 _mode;
+        std::vector<std::string>    _invited;
 
     public:
         Client( void );
@@ -61,6 +62,17 @@ class Client {
         void        setMode( std::string );
         void        setHasTime( bool );
 
+        void        addInvite( std::string chanName) {
+            _invited.push_back(chanName);
+        }
+        bool        isInvited( std::string chanName ) {
+            for (std::vector<std::string>::iterator it = _invited.begin(); it != _invited.end(); it++) {
+                std::string tmp = (*it);
+                if (tmp == chanName)
+                    return true;
+            }
+            return false;
+        }
         
         std::string getPass( void );
         std::string getNick( void );

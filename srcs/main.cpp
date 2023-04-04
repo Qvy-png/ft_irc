@@ -6,7 +6,7 @@
 /*   By: dasereno <dasereno@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/01/23 17:36:41 by rdel-agu          #+#    #+#             */
-/*   Updated: 2023/03/27 14:38:39 by dasereno         ###   ########.fr       */
+/*   Updated: 2023/03/29 17:47:03 by dasereno         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -153,8 +153,14 @@ void	kick(std::vector<Client *> client, int i, std::string tmpRest, CanalManager
 	Canal *canal = canalManager->GetChannel(channel);
 	if (canal == NULL)
 		return ;
-	if (canal->getOp().getNick() != client[i - 1]->getNick())
+	if (canal->getClient(client[i - 1]->getNick())) {
+		send_msg(ERR_NOTONCHANNEL(client[i - 1]->getNick(), canal->getName()), client[i - 1]->getFd());
 		return ;
+	}
+	if (canal->getOp().getNick() != client[i - 1]->getNick()) {
+		return ;
+		//send_msg(ERR_CHANOPRIVSNEEDED())
+	}
 	Client *cli = canal->getClient(toKick);
 	if (cli == NULL)
 		return ;
@@ -163,6 +169,7 @@ void	kick(std::vector<Client *> client, int i, std::string tmpRest, CanalManager
 		canal->deleteClient(cli);
 		std::cout << "il a quitte" << std::endl;
 	} else {
+		//send_msg(ERR_USERNOTINCHANNEL("jsp", client[i - 1]->getNick(), cli, channel));
 		std::cout << "non kickage" << std::endl;
 	}
 						
@@ -178,39 +185,45 @@ Client	*getClient(std::vector<Client *> clients, std::string name) {
 	return NULL;
 }
 
-void	privmsg_client(std::vector<Client *> client, int i, std::string tmpRest)
+void	privmsg_client(std::vector<Client *> client, CanalManager *canalManager, int i, std::string tmpRest)
 {
 	std::string receiver = tmpRest.substr(0, tmpRest.find(' '));
-	if (!isClient(client, receiver))
+	if (!isClient(client, receiver)) {
+		send_msg(ERR_NOSUCHNICK(client[i - 1]->getNick(), receiver), client[i - 1]->getFd());
 		return ;
+	}
 	std::string msg = tmpRest.substr(tmpRest.find(':'), tmpRest.size());
 	Message *newMsg = new Message (msg, *client[i - 1]);
-	Client *cli = getClient(client, receiver);
-	if (cli == NULL)
-		return ;
-	cli->pushMessage(newMsg);
-
+	Canal *newCanal = canalManager->CreateChannel(receiver, client[i]);
+	newCanal->pushClient(getClient(client, receiver));
+	newCanal->waitingMessages.push_back(newMsg);
+	(*newCanal->waitingMessages.rbegin())->clients = newCanal->clients; 
+	std::cout << "Client #" << i << " send a message." << std::endl;
 }
 
 void	privmsg(std::vector<Client *> client, CanalManager *canalManager, int i, std::string tmpRest) {
 	// MMARCHE QUE POUR LES CHANNELS ACTUELLEMENT
-	std::cout << "Client #" << i << " send a message." << std::endl;
 	std::string channel = tmpRest.substr(0, tmpRest.find(' '));
 	Canal	*canal = canalManager->GetChannel(channel);
-	if (!canal)
-		return (privmsg_client(client, i, tmpRest));
+	std::cout << channel << std::endl;
+	if (channel[0] == '#' && !canal) {
+		send_msg(ERR_NOSUCHCHANNEL(client[i - 1]->getNick(), channel), client[i - 1]->getFd());
+		return ;
+	}
+	if (!canal) {
+		return (privmsg_client(client, canalManager, i, tmpRest));
+	}
 	if (!canal->hasClient(client[i - 1]))
 		return ;
 	std::string msg = tmpRest.substr(tmpRest.find(':'), tmpRest.size());
 	Message *newMsg = new Message (msg, *client[i - 1]);
-	if (!canal)
-		return ;
 	canal->waitingMessages.push_back(newMsg);
 	for (std::vector<Client *>::iterator it = canal->clients.begin(); it != canal->clients.end(); it++) {
 		Client *cli = (*it);
 		std::cout << "->" + cli->getNick() << std::endl;
 	}
 	(*canal->waitingMessages.rbegin())->clients = canal->clients; 
+	std::cout << "Client #" << i << " send a message." << std::endl;
 }
 
 
@@ -354,9 +367,17 @@ int	main( int argc, char **argv ) {
 					for (std::vector<Message *>::iterator it_msg = tmp->waitingMessages.begin(); it_msg != tmp->waitingMessages.end(); it_msg++) {
 						Message *msg = (*it_msg);
 						if (isClient(msg->clients, client[i - 1]) && msg->getSender().getNick() != client[i - 1]->getNick()) {
-							std::cout << "client nb #" << i << " has to receive a message" << std::endl;
-							send_msg(":" + msg->getSender().getNick() + " PRIVMSG " + tmp->getName() + " " + msg->getMessage() + "\r\n", clients[i - 1]);
-							// std::cout << client[i - 1]->getNick() + " :"+ "PRIVMSG " + tmp->getName() + " " + msg.getMessage() << std::endl;
+							if (tmp->getName()[0] == '#') {
+								if (tmp->getOp().getNick() == msg->getSender().getNick())
+									send_msg(":" + msg->getSender().getNick() + " PRIVMSG " + tmp->getName() + " " + msg->getMessage() + "\r\n", clients[i - 1]);
+								else
+									send_msg(":" + msg->getSender().getNick() + " PRIVMSG " + tmp->getName() + " " + msg->getMessage() + "\r\n", clients[i - 1]);
+								std::cout << ":" + msg->getSender().getNick() + " PRIVMSG " + tmp->getName() + " " + msg->getMessage() + "\r\n" << std::endl;
+							}
+							else {
+								std::cout << std::string(":") + "PRIVMSG" + std::string(" ") + tmp->getName() + " " + msg->getMessage() + "\r\n" << std::endl;
+								send_msg("PRIVMSG" + std::string(" ") + msg->getMessage() + "\r\n", clients[i - 1]);
+							}
 							for (std::vector<Client *>::iterator cli_it = msg->clients.begin(); cli_it != msg->clients.end(); cli_it++) {
 								Client *cli = (*cli_it);
 								if (cli->getNick() == client[i - 1]->getNick())
@@ -408,7 +429,7 @@ int	main( int argc, char **argv ) {
 						bool NickIsFree;
 
 						NickIsFree = true;
-						if (client[i - 1]->getNick().empty()) {
+						//if (client[i - 1]->getNick().empty()) {
 							
 							for (int j = 0; j < num_open_fds; j++) {
 								
@@ -418,7 +439,7 @@ int	main( int argc, char **argv ) {
 									NickIsFree = false;
 								}
 							}
-						}
+						//}
 						if ( NickIsFree == true )
 							client[i - 1]->setNick(tmpRest);
 					}
@@ -511,7 +532,7 @@ int	main( int argc, char **argv ) {
 								send_msg(ERR_PASSWDMISMATCH( localhost, client[i - 1]->getNick() ), clients[i - 1] );
 
 								//faire la deconnexion du client
-								std::cout << "Client #" << i << " timout." << std::endl;
+								std::cout << "Client #" << i << " timeout." << std::endl;
 								close( pfds[i].fd );
 								client.erase( client.begin() + i - 1 );
 								clients.erase( clients.begin() + i - 1 );

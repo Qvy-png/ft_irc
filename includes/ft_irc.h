@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   ft_irc.h                                           :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: rdel-agu <rdel-agu@student.42.fr>          +#+  +:+       +#+        */
+/*   By: dasereno <dasereno@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/01/23 17:37:21 by rdel-agu          #+#    #+#             */
-/*   Updated: 2023/03/20 14:24:51 by rdel-agu         ###   ########.fr       */
+/*   Updated: 2023/03/29 17:29:00 by dasereno         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -134,11 +134,11 @@
 
 #define RPL_YOUREOPER(localhost) (":" + localhost + " 381 : You are now an IRC operator\r\n")
 
-#define ERR_NOSUCHNICK(localhost, nick, channel) (":" + localhost + " 401 " + nick + " " + channel + ": No such nick/channel\r\n")
+#define ERR_NOSUCHNICK(nick, channel) ("401 " + nick + " " + channel + ": No such nick/channel\r\n")
 
 #define ERR_NOSUCHSERVER(localhost, serv) (":" + localhost + " 402 " + serv + " :No such server\r\n")
 
-#define ERR_NOSUCHCHANNEL(localhost, nick, channel) (":" + localhost + " 403 " + nick + " " + channel + " :No such channel\r\n")
+#define ERR_NOSUCHCHANNEL(nick, channel) (/*":" + localhost + */"403 " + nick + " " + channel + " :No such channel\r\n")
 
 #define ERR_CANNOTSENDTOCHAN(localhost, nick, channel) (":" + localhost + " 404 " + nick + " " + channel + " :Cannot send to channel\r\n")
 

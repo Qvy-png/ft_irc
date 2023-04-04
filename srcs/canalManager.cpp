@@ -6,7 +6,7 @@
 /*   By: dasereno <dasereno@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/03/15 17:17:05 by dasereno          #+#    #+#             */
-/*   Updated: 2023/03/15 17:38:18 by dasereno         ###   ########.fr       */
+/*   Updated: 2023/03/29 17:36:57 by dasereno         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -25,6 +25,10 @@ Canal *CanalManager::CreateChannel(std::string name, Client *client) {
 }
 
 Canal *CanalManager::GetChannel(std::string name) {
+    if (!_channels[name]) {
+        _channels.erase(name);
+        return NULL;
+    }
     return _channels[name];
 }
 

@@ -6,7 +6,7 @@
 /*   By: dasereno <dasereno@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/03/13 16:58:43 by dasereno          #+#    #+#             */
-/*   Updated: 2023/04/04 16:56:02 by dasereno         ###   ########.fr       */
+/*   Updated: 2023/04/05 14:39:58 by dasereno         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -36,7 +36,7 @@ class Canal {
 		CanalManager	*_canalManager;
 		std::vector<Client *>	_banned;
 		std::vector<Client *>	_voiced;
-		int				_maxClients;
+		size_t				_maxClients;
 		bool			_modeO;
 		bool			_modeI;
 		bool			_modeT;
@@ -64,59 +64,28 @@ class Canal {
 		bool	hasClient(Client *);
 		bool	hasClient(std::string);
 		void	pushClient(Client *client) { clients.push_back(client); };
+		void	pushBanned(Client *client) { _banned.push_back(client); };
+		void	delBanned( Client *client );
+		bool	isBanned(Client *client);
 		Client &getOp( void ) { return _op; };
 
-		bool	isOp( std::string name ) { 
-			std::vector<Client *>::iterator	it = _chanops.begin();
-			for (; it != _chanops.end(); it++) {
-				Client *tmp = (*it);
-				if (tmp != NULL && tmp->getNick() == name)
-					return true;
-			}
-			return false;
-		}
-		bool	isOp( Client *client ) { 
-			std::vector<Client *>::iterator	it = _chanops.begin();
-			for (; it != _chanops.end(); it++) {
-				Client *tmp = (*it);
-				if (tmp != NULL && tmp->getNick() == client->getNick())
-					return true;
-			}
-			return false;
-		}
+		bool	isOp( std::string name );
+		bool	isOp( Client *client );
 
 		void	addOp( Client *client ) {
 			_chanops.push_back(client);
 		}
-		void	delOp( Client *client ) {
-			std::vector<Client *>::iterator	it = _chanops.begin();
-			for (; it != _chanops.end(); it++) {
-				Client *tmp = (*it);
-				if (tmp != NULL && tmp->getNick() == client->getNick()) {
-					_chanops.erase(it);
-					break ;
-				}
-			}
-		}
+		void	delOp( Client *client );
 
 		size_t	getNbClient ( void ) { return clients.size(); };
 
-		void	setMaxClient( int max ) { _maxClients = max;};
-		int		getMaxClient( void ) { return _maxClients; };
+		void	setMaxClient( size_t max ) { _maxClients = max;};
+		size_t		getMaxClient( void ) { return _maxClients; };
 
 		void	addVoiced( Client *client ) {
 			_voiced.push_back(client);
 		}
-		void	delVoiced( Client *client ) {
-			std::vector<Client *>::iterator	it = _voiced.begin();
-			for (; it != _voiced.end(); it++) {
-				Client *tmp = (*it);
-				if (tmp != NULL && tmp->getNick() == client->getNick()) {
-					_voiced.erase(it);
-					break ;
-				}
-			}
-		}
+		void	delVoiced( Client *client );
 
 		void			banClient(std::string name);
 		void			printBanned(void);

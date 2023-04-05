@@ -6,7 +6,7 @@
 /*   By: dasereno <dasereno@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/01/23 17:36:41 by rdel-agu          #+#    #+#             */
-/*   Updated: 2023/04/04 16:56:40 by dasereno         ###   ########.fr       */
+/*   Updated: 2023/04/05 14:51:47 by dasereno         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -138,6 +138,14 @@ std::vector<std::string> split(std::string s, std::string delimiter) {
     return res;
 }
 
+void	broadcast(Canal *canal, std::string msg) {
+	std::vector<Client *>::iterator it = canal->clients.begin();
+	for (; it != canal->clients.end(); it++) {
+		Client *tmp = (*it);
+		send_msg(msg, tmp->getFd());
+	}
+}
+
 bool	str_isnum(std::string str) {
 	for (int i = 0; str[i] ; i++) {
 		if (!isdigit(str[i]))
@@ -161,23 +169,24 @@ void	kick(std::vector<Client *> client, int i, std::string tmpRest, CanalManager
 	Canal *canal = canalManager->GetChannel(channel);
 	if (canal == NULL)
 		return ;
-	if (canal->getClient(client[i - 1]->getNick())) {
+	if (!canal->getClient(client[i - 1]->getNick())) {
 		send_msg(ERR_NOTONCHANNEL(client[i - 1]->getNick(), canal->getName()), client[i - 1]->getFd());
 		return ;
 	}
-	if (canal->isOp(client[i - 1])) {
+	if (!canal->isOp(client[i - 1])) {
+		send_msg(ERR_CHANOPRIVSNEEDED(client[i - 1]->getNick(), channel), client[i - 1]->getFd());
 		return ;
-		//send_msg(ERR_CHANOPRIVSNEEDED())
 	}
 	Client *cli = canal->getClient(toKick);
 	if (cli == NULL)
 		return ;
 	if (canal->hasClient(cli))
 	{
+		broadcast(canal, KICK(client[i - 1]->getNick(), channel, cli->getNick()));
 		canal->deleteClient(cli);
 		std::cout << "il a quitte" << std::endl;
 	} else {
-		//send_msg(ERR_USERNOTINCHANNEL("jsp", client[i - 1]->getNick(), cli, channel));
+		// send_msg(ERR_USERNOTINCHANNEL(client[i - 1]->getNick(), client[i - 1]->getNick(), cli->getNick(), channel), client[i - 1]->getFd());
 		std::cout << "non kickage" << std::endl;
 	}
 						
@@ -271,15 +280,15 @@ void	mode(std::vector<Client *> client, CanalManager *canalManager, int i, std::
 				case 'b':
 					if (args.size() < 3 || args.size() > 5 || !canal->isOp(client[i - 1]))
 						break ;
-					// for (size_t i = 2; i < args.size(); i++)
-					// 	canal->banClient(args[i]);
-					// canal->printBanned();
+					for (size_t i = 2; i < args.size(); i++)
+						canal->banClient(args[i]);
+					canal->printBanned();
 					break ;
 				case 'o' :
 					if (args.size() < 3 || !canal->isOp(client[i - 1]))
 						break ;
-					if (canal->hasClient(args[3])) {
-						canal->addOp(canal->getClient(args[3]));
+					if (canal->hasClient(args[2])) {
+						canal->addOp(canal->getClient(args[2]));
 					}
 					block = true;
 					break ;
@@ -337,7 +346,6 @@ void	join(std::vector<Client *> client, CanalManager *canalManager, int i, std::
 	std::cout << "Client #" << i << " try to join " << tmpRest << std::endl;
 	std::string name = tmpRest;
 	std::string pass = "";
-	bool		can_join = true;
 
 	if (tmpRest.find(' ') != tmpRest.npos) {
 		name = tmpRest.substr(0, tmpRest.find(' '));
@@ -349,34 +357,35 @@ void	join(std::vector<Client *> client, CanalManager *canalManager, int i, std::
 		canal = canalManager->CreateChannel(tmpRest, client[i - 1]);
 		// send_msg(RPL_YOUREOPER(client[i - 1]->getNick()), client[i - 1]->getFd());
 	}
-	if (canal->getModeK() == true) {
-		if (pass.size() != 0 && pass == canal->getPass())
-			// canal->pushClient(client[i - 1]);
-			can_join = true;
+	if (canal->getModeK()) {
+		if (pass.size() != 0 && pass == canal->getPass()) { }
 		else {
 			std::cout << "Client " <<  i << " try to join but bad pass" << std::endl;
 			send_msg(ERR_BADCHANNELKEY(client[i - 1]->getNick(), name), client[i - 1]->getFd());
-			can_join = false;
 			return ;
 		}
 	}
+	if (canal->getModeB() && canal->isBanned(client[i - 1])) {
+		// BANNED
+		return ;
+	}
 	if (canal->getModeI()) {
-		if (client[i - 1]->isInvited(name))
-			// canal->pushClient(client[i - 1]);
-			can_join = true;
-		else {
+		if (!client[i - 1]->isInvited(name)) {
 			// NOT INVITED
-			can_join = false;
+			std::cout << "You are not invited to this channel" << std::endl;
+			std::cout << ":473 " + client[i - 1]->getNick() + " " + canal->getName() + " :Cannot join channel (+i)" << std::endl;
+			send_msg(":473 " + client[i - 1]->getNick() + " " + canal->getName() + " :Cannot join channel (+i)", client[i - 1]->getFd());
 			return ;
 		}
 	}
 
-	if (canal->getModeL() && canal->getNbClient() < canal->getMaxClient())
-		can_join = true;
-	else if (!canal->getModeL())
-		can_join = false;
+	if (canal->getModeL() && canal->getNbClient() < canal->getMaxClient()) { }
+	else if (canal->getModeL()) {
+		// TO MUCH PEOPLE ON CHANNEL
+		return ;
+	}
 		
-	if (!canal->hasClient(client[i - 1]) && can_join) {
+	if (!canal->hasClient(client[i - 1])) {
 		canal->pushClient(client[i - 1]);
 	}
 }
@@ -634,12 +643,14 @@ int	main( int argc, char **argv ) {
 						std::cout << "Client #" << i << " PART channel "<< tmpRest << std::endl;
 						std::string args = tmpRest.substr(tmpRest.find(':') + 1, tmpRest.size());
 						std::vector<std::string> channels = split(args, " ");
-						std::map<std::string, Canal *> canals = canalManager->GetChannels();
-						for (std::map<std::string, Canal *>::iterator it = canals.begin(); it != canals.end(); it++) {
-							Canal *canal = (*it).second;
-							if (canal->hasClient(client[i - 1]))
+						for (std::vector<std::string>::iterator it = channels.begin(); it != channels.end(); it++) {
+							std::string canalName = (*it);
+							Canal *canal = canalManager->GetChannel(canalName);
+							if (canal && canal->hasClient(client[i - 1]))
 							{
 								canal->deleteClient(client[i - 1]);
+								// BROADCAST PART MESSAGE FOR EVERYONE
+								send_msg("PART " + canalName + " :" + "\r\n", clients[i - 1]);
 								send_msg(":" + client[i - 1]->getNick() + "!user@host PART " + canal->getName() + " " + "\r\n", clients[i - 1]);
 							}
 						}

@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   main.cpp                                           :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: dasereno <dasereno@student.42.fr>          +#+  +:+       +#+        */
+/*   By: rdel-agu <rdel-agu@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/01/23 17:36:41 by rdel-agu          #+#    #+#             */
-/*   Updated: 2023/04/04 11:43:00 by dasereno         ###   ########.fr       */
+/*   Updated: 2023/04/05 15:12:39 by rdel-agu         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -462,9 +462,10 @@ int	main( int argc, char **argv ) {
 						std::string			splitTmp;
 						int					j = 0;
 
-						client[i - 1]->setFullName( tmpRest );
 						while ( getline( userSplitter, splitTmp, ' ') ) {
 							
+							if ( j == 0 )
+								client[i - 1]->setFullName( splitTmp );
 							if ( j == 2 )
 								client[i - 1]->setHost( splitTmp );
 							j++;
@@ -529,9 +530,17 @@ int	main( int argc, char **argv ) {
 						while ( j <= num_open_fds ) {
 							
 							if ( client[j - 1]->getNick() == tmpRest ) {
-								
-								std::cout << client[i - 1]->getHost() << " et " << client[i-1]->getNick() << std::endl;
-								send_msg( RPL_WHOISUSER( client[j - 1]->getHost(), client[j - 1]->getNick(), client[j - 1]->getNick(), client[j - 1]->getHost(), client[j - 1]->getFullName() ), clients[ i - 1 ] );
+
+								std::string name = client[j - 1]->getNick() + "!" + client[j - 1]->getFullName() + "@" + client[j - 1]->getHost();
+								std::string requesterName = client[i - 1]->getNick() + "!" + client[i - 1]->getFullName() + "@" + client[i - 1]->getHost();
+								std::string nick = client[j - 1]->getNick();
+								std::string fullName = client[j - 1]->getFullName();
+								// std::cout << client[j - 1]->getFullName() << " et " << client[i-1]->getNick() << std::endl;
+								std::cout << RPL_WHOISUSER( requesterName, client[i - 1]->getNick(), nick, name, fullName ) << std::endl;
+								std::cout << RPL_WHOISSERVER( requesterName, client[i - 1]->getNick(), client[j - 1]->getNick(), requesterName, "This server") << std::endl;
+								std::cout << RPL_ENDOFWHOIS( name, tmpRest) << std::endl;
+
+								send_msg( RPL_WHOISUSER( requesterName, client[i - 1]->getNick(), nick, name, fullName ) + RPL_WHOISSERVER( requesterName, client[i - 1]->getNick(), client[j - 1]->getNick(), requesterName, "This server") + RPL_ENDOFWHOIS( name, tmpRest) ,clients[ i - 1 ] );
 							}
 							j++;
 						}

@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   ft_irc.h                                           :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: dasereno <dasereno@student.42.fr>          +#+  +:+       +#+        */
+/*   By: rdel-agu <rdel-agu@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/01/23 17:37:21 by rdel-agu          #+#    #+#             */
-/*   Updated: 2023/03/29 17:29:00 by dasereno         ###   ########.fr       */
+/*   Updated: 2023/04/05 15:48:11 by rdel-agu         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -92,7 +92,7 @@
 
 #define RPL_WHOISUSER(localhost, nick, user, host, name) (":" + localhost + " 311 " + nick + " " + user + " " + host + " * :" + name + "\r\n")
 
-#define RPL_WHOISSERVER(localhost, nick, server_info) (":" + localhost + " 312 " + nick + " " + SERVERNAME + " :" + server_info + "\r\n")
+#define RPL_WHOISSERVER(localhost, nick, searchNick, requestName, server_info) (":" + localhost + " 312 " + nick + " " + searchNick + " " + requestName + " :" + server_info + "\r\n")
 
 #define RPL_WHOISOPERATOR(localhost, nick) (":" + localhost + " 313 " + nick  + " :is an IRC operator\r\n")
 

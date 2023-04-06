@@ -6,7 +6,7 @@
 /*   By: rdel-agu <rdel-agu@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/01/23 17:36:41 by rdel-agu          #+#    #+#             */
-/*   Updated: 2023/04/06 15:01:47 by rdel-agu         ###   ########.fr       */
+/*   Updated: 2023/04/06 15:42:40 by rdel-agu         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -61,16 +61,6 @@ int hasReturn( std::string str ) {
 		else
 			return ( 0 );
 	}
-}
-
-bool quit = true;
-
-void signal_callback_handler( int signum ) {
-
-	std::cout << GRN " \n Bye bye!" CRESET << std::endl;
-	// if ( signum == SIGQUIT )
-	// 	quit = false;
-	exit(signum);
 }
 
 bool canalExist(std::vector<Canal *> canals, std::string canalName) {
@@ -390,6 +380,23 @@ void	join(std::vector<Client *> client, CanalManager *canalManager, int i, std::
 	}
 }
 
+std::vector<Client*> client;
+
+bool quit = true;
+
+void signal_callback_handler( int signum ) {
+
+	std::cout << GRN " \n Bye bye!" CRESET << std::endl;
+	if ( signum == SIGQUIT ) {
+		
+		for (std::vector<Client*>::iterator it = client.begin(); it != client.end(); ++it) {
+      		delete (*it);
+    }
+		client.clear();
+	}
+	exit(signum);
+}
+
 
 int	main( int argc, char **argv ) {
 
@@ -442,7 +449,7 @@ int	main( int argc, char **argv ) {
 
 	bzero(buffer, 1025);
 	
-	std::vector<Client*> client;
+
 
 	std::string			localhost, nick;
 	localhost = "localhost";

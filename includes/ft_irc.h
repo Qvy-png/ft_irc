@@ -6,7 +6,7 @@
 /*   By: rdel-agu <rdel-agu@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/01/23 17:37:21 by rdel-agu          #+#    #+#             */
-/*   Updated: 2023/04/05 15:48:11 by rdel-agu         ###   ########.fr       */
+/*   Updated: 2023/04/06 14:25:35 by rdel-agu         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -90,7 +90,7 @@
 
 #define RPL_UMODEIS(localhost, nick, mode, param) (":" + localhost + " 221 " + nick + " :+" + mode + "" + param + " \r\n")
 
-#define RPL_WHOISUSER(localhost, nick, user, host, name) (":" + localhost + " 311 " + nick + " " + user + " " + host + " * :" + name + "\r\n")
+#define RPL_WHOISUSER(localhost, nick, user, host, searchHost, name) (":" + localhost + " 311 " + nick + " " + user + " " + host + " " + searchHost + " " + name + "\r\n")
 
 #define RPL_WHOISSERVER(localhost, nick, searchNick, requestName, server_info) (":" + localhost + " 312 " + nick + " " + searchNick + " " + requestName + " :" + server_info + "\r\n")
 

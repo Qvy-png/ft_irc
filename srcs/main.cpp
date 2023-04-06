@@ -6,7 +6,7 @@
 /*   By: rdel-agu <rdel-agu@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/01/23 17:36:41 by rdel-agu          #+#    #+#             */
-/*   Updated: 2023/04/06 14:26:24 by rdel-agu         ###   ########.fr       */
+/*   Updated: 2023/04/06 14:56:41 by rdel-agu         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -603,8 +603,13 @@ int	main( int argc, char **argv ) {
 								}
 							}
 						//}
-						if ( NickIsFree == true )
+						if ( NickIsFree == true ) {
+
+							std::string name = client[i - 1]->getNick() + "!" + client[i - 1]->getFullName() + "@" + client[i - 1]->getHost();
+							
 							client[i - 1]->setNick(tmpRest);
+							send_msg(NICK( name, tmpRest), clients[i - 1]);
+						}
 					}
 					else if ( tmp == "PING" ) {
 						

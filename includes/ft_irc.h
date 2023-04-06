@@ -6,7 +6,7 @@
 /*   By: rdel-agu <rdel-agu@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/01/23 17:37:21 by rdel-agu          #+#    #+#             */
-/*   Updated: 2023/04/06 14:49:25 by rdel-agu         ###   ########.fr       */
+/*   Updated: 2023/04/06 15:00:59 by rdel-agu         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -55,6 +55,8 @@
 #define TIME_LIMIT 60
 
 // macros
+
+#define ERR_NOTIMPLEMENTED(localhost, word) (":" + localhost + " 449 : " + word + " command not implemented\n")
 
 #define RPL_WELCOME(localhost, nick) (":" + localhost + " 001 " + nick + " :Welcome to the Internet Relay Network " + localhost + "\r\n")
 

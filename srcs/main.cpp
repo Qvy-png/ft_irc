@@ -6,7 +6,7 @@
 /*   By: rdel-agu <rdel-agu@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/01/23 17:36:41 by rdel-agu          #+#    #+#             */
-/*   Updated: 2023/04/06 14:56:41 by rdel-agu         ###   ########.fr       */
+/*   Updated: 2023/04/06 15:01:47 by rdel-agu         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -713,6 +713,8 @@ int	main( int argc, char **argv ) {
 						}
 						
 					}
+					else
+						send_msg(ERR_NOTIMPLEMENTED( client[i - 1]->getHost(), tmp) ,clients[i - 1]);
 					
 					if ( client[i - 1]->getHs() == false ) {
 					

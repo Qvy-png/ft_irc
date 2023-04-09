@@ -6,7 +6,7 @@
 /*   By: dasereno <dasereno@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/03/13 17:39:26 by dasereno          #+#    #+#             */
-/*   Updated: 2023/04/05 14:40:27 by dasereno         ###   ########.fr       */
+/*   Updated: 2023/04/09 18:16:20 by dasereno         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -46,6 +46,14 @@ bool    Canal::hasClient(Client *client)  {
     return false;
 }
 
+void	Canal::broadcast(std::string msg) {
+	std::vector<Client *>::iterator it = this->clients.begin();
+	for (; it != this->clients.end(); it++) {
+		Client *tmp = (*it);
+	    send(tmp->getFd(), msg.c_str(), msg.length(), MSG_CONFIRM);
+	}
+}
+
 bool    Canal::hasClient(std::string nick)  {
     for (std::vector<Client *>::iterator it = clients.begin(); it != clients.end(); it++) {
         Client *cli = (*it);
@@ -65,27 +73,25 @@ Client *Canal::getClient(std::string name) {
 }
 
 void    Canal::banClient(std::string name) {
-    if (this->hasClient(name)) {
-        this->pushBanned(this->getClient(name));
-    }
+    this->pushBanned(name);
 }
 
 bool    Canal::isBanned(Client *client) {
-    std::vector<Client *>::iterator	it = _banned.begin();
+    std::vector<std::string>::iterator	it = _banned.begin();
     for (; it != _banned.end(); it++) {
-        Client *tmp = (*it);
-        if (tmp != NULL && tmp->getNick() == client->getNick())
+        std::string tmp = (*it);
+        if (tmp == client->getNick())
             return true;
     }
     return false;
 }
 
 void    Canal::printBanned(void) {
-    std::vector<Client *>::iterator it = _banned.begin();
+    std::vector<std::string >::iterator it = _banned.begin();
 
     for (; it != _banned.end(); it++) {
-        Client *tmp = (*it);
-        std::cout << tmp->getNick() << std::endl;
+        std::string tmp = (*it);
+        std::cout << tmp << std::endl;
     }    
 }
 
@@ -100,6 +106,26 @@ bool	Canal::isOp( std::string name ) {
 }
 
 bool	Canal::isOp( Client *client ) { 
+    std::vector<Client *>::iterator	it = _chanops.begin();
+    for (; it != _chanops.end(); it++) {
+        Client *tmp = (*it);
+        if (tmp != NULL && tmp->getNick() == client->getNick())
+            return true;
+    }
+    return false;
+}
+
+bool	Canal::isVoiced( std::string name ) { 
+    std::vector<Client *>::iterator	it = _chanops.begin();
+    for (; it != _chanops.end(); it++) {
+        Client *tmp = (*it);
+        if (tmp != NULL && tmp->getNick() == name)
+            return true;
+    }
+    return false;
+}
+
+bool	Canal::isVoiced( Client *client ) { 
     std::vector<Client *>::iterator	it = _chanops.begin();
     for (; it != _chanops.end(); it++) {
         Client *tmp = (*it);
@@ -133,10 +159,21 @@ void	Canal::delVoiced( Client *client ) {
 
 
 void	Canal::delBanned( Client *client ) {
-    std::vector<Client *>::iterator	it = _banned.begin();
+    std::vector<std::string >::iterator	it = _banned.begin();
     for (; it != _banned.end(); it++) {
-        Client *tmp = (*it);
-        if (tmp != NULL && tmp->getNick() == client->getNick()) {
+        std::string tmp = (*it);
+        if (tmp == client->getNick()) {
+            _banned.erase(it);
+            break ;
+        }
+    }
+}
+
+void	Canal::delBanned( std::string client ) {
+    std::vector<std::string >::iterator	it = _banned.begin();
+    for (; it != _banned.end(); it++) {
+        std::string tmp = (*it);
+        if (tmp == client) {
             _banned.erase(it);
             break ;
         }

@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   main.cpp                                           :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: rdel-agu <rdel-agu@student.42.fr>          +#+  +:+       +#+        */
+/*   By: dasereno <dasereno@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/01/23 17:36:41 by rdel-agu          #+#    #+#             */
-/*   Updated: 2023/04/06 15:42:40 by rdel-agu         ###   ########.fr       */
+/*   Updated: 2023/04/09 18:39:20 by dasereno         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -128,12 +128,18 @@ std::vector<std::string> split(std::string s, std::string delimiter) {
     return res;
 }
 
-void	broadcast(Canal *canal, std::string msg) {
-	std::vector<Client *>::iterator it = canal->clients.begin();
-	for (; it != canal->clients.end(); it++) {
-		Client *tmp = (*it);
-		send_msg(msg, tmp->getFd());
-	}
+void	ping(std::vector<int> clients, int i, std::vector<Client *> client) {
+						
+	// send_msg(PONG(), clients[i - 1]);
+
+	std::time_t time = std::time(NULL);
+
+	if (client[i - 1]->getHasTime() == true )
+		std::cout << BLU <<  time - client[i - 1]->getTime() << CRESET << std::endl;
+	client[i - 1]->setTime( time );
+	std::cout << client[i - 1]->getTime() << std::endl;
+	send_msg(PONG(), clients[i - 1]);
+	client[i - 1]->setHasTime( true );
 }
 
 bool	str_isnum(std::string str) {
@@ -172,7 +178,7 @@ void	kick(std::vector<Client *> client, int i, std::string tmpRest, CanalManager
 		return ;
 	if (canal->hasClient(cli))
 	{
-		broadcast(canal, KICK(client[i - 1]->getNick(), channel, cli->getNick()));
+		canal->broadcast(KICK(client[i - 1]->getNick(), channel, cli->getNick()));
 		canal->deleteClient(cli);
 		std::cout << "il a quitte" << std::endl;
 	} else {
@@ -201,27 +207,31 @@ void	privmsg_client(std::vector<Client *> client, CanalManager *canalManager, in
 	}
 	std::string msg = tmpRest.substr(tmpRest.find(':'), tmpRest.size());
 	Message *newMsg = new Message (msg, *client[i - 1]);
-	Canal *newCanal = canalManager->CreateChannel(receiver, client[i]);
+	Canal *newCanal = canalManager->CreateChannel(client[i - 1]->getNick(), client[i - 1]);
 	newCanal->pushClient(getClient(client, receiver));
 	newCanal->waitingMessages.push_back(newMsg);
 	(*newCanal->waitingMessages.rbegin())->clients = newCanal->clients; 
-	std::cout << "Client #" << i << " send a message." << std::endl;
+	std::cout << "Client #" << i << " send a message prive." << std::endl;
 }
 
 void	privmsg(std::vector<Client *> client, CanalManager *canalManager, int i, std::string tmpRest) {
 	// MMARCHE QUE POUR LES CHANNELS ACTUELLEMENT
 	std::string channel = tmpRest.substr(0, tmpRest.find(' '));
 	Canal	*canal = canalManager->GetChannel(channel);
-	std::cout << channel << std::endl;
+	std::cout << "channel = " << channel << std::endl;
 	if (channel[0] == '#' && !canal) {
 		send_msg(ERR_NOSUCHCHANNEL(client[i - 1]->getNick(), channel), client[i - 1]->getFd());
 		return ;
 	}
-	if (!canal) {
+	if (!canal || (canal && channel[0] != '#') || channel[0] != '#') {
 		return (privmsg_client(client, canalManager, i, tmpRest));
 	}
 	if (!canal->hasClient(client[i - 1]))
 		return ;
+	if (canal->getModeM() && !canal->isVoiced(client[i - 1])) {
+		send_msg(ERR_CANNOTSENDTOCHAN(client[i - 1]->getNick(), canal->getName()), client[i - 1]->getFd());
+		return ;
+	}
 	std::string msg = tmpRest.substr(tmpRest.find(':'), tmpRest.size());
 	Message *newMsg = new Message (msg, *client[i - 1]);
 	canal->waitingMessages.push_back(newMsg);
@@ -233,6 +243,32 @@ void	privmsg(std::vector<Client *> client, CanalManager *canalManager, int i, st
 	std::cout << "Client #" << i << " send a message." << std::endl;
 }
 
+void	invite(std::vector<Client *> client, CanalManager *canalManager, int i, std::string tmpRest) {
+	std::string channel = tmpRest.substr(tmpRest.find(' ') + 1, tmpRest.size());
+	Canal	*canal = canalManager->GetChannel(channel);
+	std::string invited = tmpRest.substr(0, tmpRest.find(' '));
+
+	if (!canal->getModeI())
+		return ;
+	if (!canal || !canal->getClient(client[i - 1]->getNick())) {
+		send_msg(ERR_NOTONCHANNEL(client[i - 1]->getNick(), channel), client[i - 1]->getFd());
+		return ;
+	}
+	if (!canal->isOp(client[i - 1])) {
+		send_msg(ERR_CHANOPRIVSNEEDED(client[i - 1]->getNick(), channel), client[i - 1]->getFd());
+		return ;
+	}
+	if (!getClient(client, invited)) {
+		send_msg(ERR_NOSUCHNICK(client[i - 1]->getNick(), invited), client[i - 1]->getFd());
+		return ;
+	}
+	if (canal->getClient(invited)) {
+		send_msg(ERR_USERONCHANNEL(client[i - 1]->getNick(), invited, canal->getName()), client[i - 1]->getFd());
+		return ;
+	}
+	canal->addInvite(invited);
+	canal->broadcast(RPL_INVITING(client[i - 1]->getNick(), channel, invited));
+}
 
 void	mode(std::vector<Client *> client, CanalManager *canalManager, int i, std::string tmpRest) {
 	std::vector<std::string>	args = split(tmpRest, " ");
@@ -254,8 +290,8 @@ void	mode(std::vector<Client *> client, CanalManager *canalManager, int i, std::
 			//BAD CANAL
 			return ;
 		}
+		bool block = false;
 		if (args[1][0] == '+') { // ADD MODES
-			bool block = false;
 			for (int i = 1; args[1][i]; i++) {
 				switch (args[1][i])
 				{
@@ -266,56 +302,140 @@ void	mode(std::vector<Client *> client, CanalManager *canalManager, int i, std::
 					canal->setModeK(true);
 					std::cout << "Pass set to : " << args[2] << std::endl; 
 					block = true;
+					canal->broadcast(RPL_MODE(client[i - 1]->getPrefix(), canal->getName(), "+k", args[2]));
+					std::cout << args[2] << std::endl;
 					break;
-				case 'b':
-					if (args.size() < 3 || args.size() > 5 || !canal->isOp(client[i - 1]))
+				case 'b': // IF ARGS size == 2 => PRINT BANNED USERS
+					if (args.size() != 3 || !canal->isOp(client[i - 1]))
 						break ;
-					for (size_t i = 2; i < args.size(); i++)
-						canal->banClient(args[i]);
+					canal->banClient(args[2]);
 					canal->printBanned();
+					canal->setModeB(true);
+					canal->broadcast(RPL_MODE(client[i - 1]->getPrefix(), canal->getName(), "+b", args[2]));
+					block = true;
 					break ;
-				case 'o' :
+				case 'o' : // IF ARGS size == 2 => PRINT OPERATOR USERS
 					if (args.size() < 3 || !canal->isOp(client[i - 1]))
 						break ;
 					if (canal->hasClient(args[2])) {
 						canal->addOp(canal->getClient(args[2]));
-					}
+					} else
+						break ;
+					canal->broadcast(RPL_MODE(client[i - 1]->getPrefix(), canal->getName(), "+o", args[2]));
 					block = true;
 					break ;
 				case 'i' :
 					if (canal->getModeI() || !canal->isOp(client[i - 1]))
 						break ;
 					canal->setModeI(true);
+					canal->broadcast(RPL_MODE(client[i - 1]->getPrefix(), canal->getName(), "+i", ""));
 					break ;
 				case 'm' :
 					if (canal->getModeM() || !canal->isOp(client[i - 1]))
 						break ;
 					canal->setModeM(true);
+					canal->broadcast(RPL_MODE(client[i - 1]->getPrefix(), canal->getName(), "+m", ""));
+					break ;
 				case 'l' :
 					if (!canal->isOp(client[i - 1]) || args.size() < 3 || !str_isnum(args[2]))
 						break ;
 					canal->setModeL(true);
 					canal->setMaxClient(atoi(args[2].c_str()));
+					canal->broadcast(RPL_MODE(client[i - 1]->getPrefix(), canal->getName(), "+l", args[2]));
 					block = true;
+					break ;
 				case 'v' :
-					if (!canal->isOp(client[i - 1]) || args.size() < 3)
+					if (!canal->isOp(client[i - 1]) || args.size() != 3) // IF ARGS size == 2 => PRINT VOICED USERS
 						break ;
 					canal->setModeV(true);
-					for (size_t i = 2; i < args.size(); i++) {
-						if (canal->hasClient(args[i])) {
-							canal->addVoiced(canal->getClient(args[i]));
-						}
+					if (canal->hasClient(args[2])) {
+						canal->addVoiced(canal->getClient(args[2]));
 					}
 					block = true;
+					canal->broadcast(RPL_MODE(client[i - 1]->getPrefix(), canal->getName(), "+v", args[2]));
+					break ;
 				default:
-					// BAD MODE
+					send_msg(ERR_UNKNOWNMODE(client[i - 1]->getNick(), args[1][i]), client[i - 1]->getFd());
 					return ;
 				}
 				if (block)
 					return ;
 			}
 		} else if (args[2][0] == '-') { // REMOVE MODES
-
+			for (int i = 1; args[1][i]; i++) {
+				switch (args[1][i])
+				{
+				case 'k':
+					if (!canal->isOp(client[i - 1]))
+						break ;
+					canal->setPass("");
+					canal->setModeK(false);
+					canal->broadcast(RPL_MODE(client[i - 1]->getPrefix(), canal->getName(), "-k", ""));
+					break;
+				case 'b': // IF ARGS size == 2 => PRINT BANNED USERS
+					if (!canal->isOp(client[i - 1]))
+						break ;
+					if (args.size() != 3) {
+						canal->setModeB(false);
+						canal->broadcast(RPL_MODE(client[i - 1]->getPrefix(), canal->getName(), "-b", ""));
+						canal->resetBanned();
+					} else if (args.size() == 3) {
+						canal->delBanned(args[2]);
+						canal->broadcast(RPL_MODE(client[i - 1]->getPrefix(), canal->getName(), "-b", args[2]));
+						block = true;
+					}
+					break ;
+				case 'o' : // IF ARGS size == 2 => PRINT OPERATOR USERS
+					if (!canal->isOp(client[i - 1]))
+						break ;
+					if (args.size() == 3 && canal->hasClient(args[2])) {
+						canal->delOp(canal->getClient(args[2]));
+						canal->broadcast(RPL_MODE(client[i - 1]->getPrefix(), canal->getName(), "-o", args[2]));
+						block = true;
+					} else 
+						break ;
+					break ;
+				case 'i' :
+					if (!canal->getModeI() || !canal->isOp(client[i - 1]))
+						break ;
+					canal->setModeI(false);
+					canal->resetInvited();
+					canal->broadcast(RPL_MODE(client[i - 1]->getPrefix(), canal->getName(), "-i", ""));
+					break ;
+				case 'm' :
+					if (!canal->getModeM() || !canal->isOp(client[i - 1]))
+						break ;
+					canal->setModeM(false);
+					canal->broadcast(RPL_MODE(client[i - 1]->getPrefix(), canal->getName(), "-m", ""));
+					break ;
+				case 'l' :
+					if (!canal->getModeL() || !canal->isOp(client[i - 1]))
+						break ;
+					canal->setModeL(false);
+					canal->setMaxClient(0);
+					canal->broadcast(RPL_MODE(client[i - 1]->getPrefix(), canal->getName(), "-l",  ""));
+					block = true;
+					break ;
+				case 'v' :
+					if (!canal->isOp(client[i - 1])) // IF ARGS size == 2 => PRINT VOICED USERS
+						break ;
+					if ( args.size() < 3) {
+						canal->setModeV(false);
+						canal->broadcast(RPL_MODE(client[i - 1]->getPrefix(), canal->getName(), "-v", ""));
+						canal->resetVoiced();
+					} else if (args.size() == 3 && canal->getClient(args[2])) {
+						canal->delVoiced(canal->getClient(args[2]));
+						canal->broadcast(RPL_MODE(client[i - 1]->getPrefix(), canal->getName(), "-v", args[2]));
+						block = true;
+					}
+					break ;
+				default:
+					send_msg(ERR_UNKNOWNMODE(client[i - 1]->getNick(), args[1][i]), client[i - 1]->getFd());
+					return ;
+				}
+				if (block)
+					return ;
+			}
 		}
 	} else { // USER MODE
 		// if (args[2][0] == '+') { // ADD MODES
@@ -339,45 +459,73 @@ void	join(std::vector<Client *> client, CanalManager *canalManager, int i, std::
 
 	if (tmpRest.find(' ') != tmpRest.npos) {
 		name = tmpRest.substr(0, tmpRest.find(' '));
-		pass = tmpRest.substr(tmpRest.find(' '), tmpRest.size());
+		pass = tmpRest.substr(tmpRest.find(' ') + 1, tmpRest.size());
 	}
 	// split tmpRest en 2
 	Canal *canal = canalManager->GetChannel(name);
 	if (canal == NULL) {
 		canal = canalManager->CreateChannel(tmpRest, client[i - 1]);
-		// send_msg(RPL_YOUREOPER(client[i - 1]->getNick()), client[i - 1]->getFd());
+		std::string users ("");
+		std::vector<Client *> nicknames = canal->getClients();
+		for (std::vector<Client *>::iterator it = nicknames.begin(); it != nicknames.end(); it++) {
+			Client *tmp = *it;
+			if (canal->isOp(tmp->getNick()))
+				users.append("@" + tmp->getNick() + " ");
+			else
+				users.append(tmp->getNick() + " ");
+		}
+		send_msg(RPL_NAMREPLY(client[i - 1]->getNick(), canal->getName(), users), client[i - 1]->getFd());
+		std::cout << "RPL_NAMREPLY: " << RPL_NAMREPLY(client[i - 1]->getNick(), canal->getName(), users) << std::endl;
+		send_msg(RPL_ENDOFNAMES(client[i - 1]->getNick(), canal->getName()), client[i - 1]->getFd());
+		std::cout << "RPL_ENDOFNAMES : " << RPL_ENDOFNAMES(client[i - 1]->getNick(), canal->getName()) << std::endl;
+		canal->broadcast(RPL_JOIN(client[i - 1]->getPrefix(), canal->getName()));
+		std::cout << "RPL_JOIN : " << RPL_JOIN(client[i - 1]->getPrefix(), canal->getName()) << std::endl;
 	}
 	if (canal->getModeK()) {
 		if (pass.size() != 0 && pass == canal->getPass()) { }
 		else {
 			std::cout << "Client " <<  i << " try to join but bad pass" << std::endl;
 			send_msg(ERR_BADCHANNELKEY(client[i - 1]->getNick(), name), client[i - 1]->getFd());
+			std::cout << "pass tested = " << pass << std::endl;
 			return ;
 		}
 	}
 	if (canal->getModeB() && canal->isBanned(client[i - 1])) {
-		// BANNED
+		send_msg(ERR_BANNEDFROMCHAN(client[i - 1]->getNick(), canal->getName()), client[i - 1]->getFd());
+		std::cout << "YOU ARE BANNED" << std::endl;
 		return ;
 	}
-	if (canal->getModeI()) {
-		if (!client[i - 1]->isInvited(name)) {
-			// NOT INVITED
-			std::cout << "You are not invited to this channel" << std::endl;
-			std::cout << ":473 " + client[i - 1]->getNick() + " " + canal->getName() + " :Cannot join channel (+i)" << std::endl;
-			send_msg(":473 " + client[i - 1]->getNick() + " " + canal->getName() + " :Cannot join channel (+i)", client[i - 1]->getFd());
-			return ;
-		}
+	if (canal->getModeI() && !canal->isInvited(client[i - 1]->getNick())) {
+		send_msg(ERR_INVITEONLYCHAN(client[i - 1]->getNick(), canal->getName()), client[i - 1]->getFd());
+		std::cout << "You are not invited to this channel" << std::endl;
+		return ;
 	}
 
 	if (canal->getModeL() && canal->getNbClient() < canal->getMaxClient()) { }
 	else if (canal->getModeL()) {
-		// TO MUCH PEOPLE ON CHANNEL
+		send_msg(ERR_CHANNELISFULL(client[i - 1]->getNick(), canal->getName()), client[i - 1]->getFd());
 		return ;
 	}
 		
 	if (!canal->hasClient(client[i - 1])) {
 		canal->pushClient(client[i - 1]);
+		std::string users ("");
+		std::vector<Client *> nicknames = canal->getClients();
+		for (std::vector<Client *>::iterator it = nicknames.begin(); it != nicknames.end(); it++) {
+			Client *tmp = *it;
+			if (canal->isOp(tmp->getNick()))
+				users.append("@" + tmp->getNick() + " ");
+			else
+				users.append(tmp->getNick() + " ");
+		}
+		send_msg(RPL_NAMREPLY(client[i - 1]->getNick(), canal->getName(), users), client[i - 1]->getFd());
+		std::cout << "RPL_NAMREPLY: " << RPL_NAMREPLY(client[i - 1]->getNick(), canal->getName(), users) << std::endl;
+		send_msg(RPL_ENDOFNAMES(client[i - 1]->getNick(), canal->getName()), client[i - 1]->getFd());
+		std::cout << "RPL_ENDOFNAMES : " << RPL_ENDOFNAMES(client[i - 1]->getNick(), canal->getName()) << std::endl;
+		canal->broadcast(RPL_JOIN(client[i - 1]->getPrefix(), canal->getName()));
+		std::cout << "RPL_JOIN : " << RPL_JOIN(client[i - 1]->getPrefix(), canal->getName()) << std::endl;
 	}
+
 }
 
 std::vector<Client*> client;
@@ -454,9 +602,6 @@ int	main( int argc, char **argv ) {
 	std::string			localhost, nick;
 	localhost = "localhost";
 	nick = "nick";
-
-	short event[2] = {POLLIN, POLLOUT};
-	int	ev = 0;
 	
 	pfds[0].fd = server_socket;
 	pfds[0].events = POLLIN;
@@ -501,7 +646,7 @@ int	main( int argc, char **argv ) {
 					num_open_fds--;
 				}
 			}
-			pfds[i].events = event[ev]; 
+			pfds[i].events = POLLIN | POLLOUT; 
 			if ( pfds[i].revents & POLLIN ) {
 				
 				int valread = recv( pfds[i].fd, &buffer, 1024, 0 );
@@ -537,7 +682,9 @@ int	main( int argc, char **argv ) {
 					for (std::vector<Message *>::iterator it_msg = tmp->waitingMessages.begin(); it_msg != tmp->waitingMessages.end(); it_msg++) {
 						Message *msg = (*it_msg);
 						if (isClient(msg->clients, client[i - 1]) && msg->getSender().getNick() != client[i - 1]->getNick()) {
+							std::cout << "msg = " << msg->getMessage() << std::endl;
 							if (tmp->getName()[0] == '#') {
+								std::cout << "ici mec " << std::endl; 
 								if (tmp->isOp(msg->getSender().getNick()))
 									send_msg(":" + msg->getSender().getNick() + " PRIVMSG " + tmp->getName() + " " + msg->getMessage() + "\r\n", clients[i - 1]);
 								else
@@ -545,9 +692,16 @@ int	main( int argc, char **argv ) {
 								std::cout << ":" + msg->getSender().getNick() + " PRIVMSG " + tmp->getName() + " " + msg->getMessage() + "\r\n" << std::endl;
 							}
 							else {
-								std::cout << std::string(":") + "PRIVMSG" + std::string(" ") + tmp->getName() + " " + msg->getMessage() + "\r\n" << std::endl;
-								send_msg("PRIVMSG" + std::string(" ") + msg->getMessage() + "\r\n", clients[i - 1]);
+								std::cout << "PRIV_MSG : " << RPL_PRIVMSG(getClient(client, tmp->getName())->getPrefix(), client[i - 1]->getNick(), msg->getMessage()) << std::endl;
+								//send_msg("PRIVMSG" + std::string(" ") + msg->getMessage() + "\r\n", clients[i - 1]);
+								// irctest : momo!root@localhost PRIVMSG coco :hey
+								// momo envoie / coco recoit
+
+								// moi : coco!root@localhost PRIVMSG coco :salut
+								// momo envoie / coco recoit
+								send_msg(RPL_PRIVMSG(getClient(client, tmp->getName())->getPrefix(), client[i - 1]->getNick(), msg->getMessage()), client[i - 1]->getFd());
 							}
+							//std::cout << "USER JOIN : " << client[i - 1]->getFullName() << " et " << client[i - 1]->getHost() << std::endl; 
 							for (std::vector<Client *>::iterator cli_it = msg->clients.begin(); cli_it != msg->clients.end(); cli_it++) {
 								Client *cli = (*cli_it);
 								if (cli->getNick() == client[i - 1]->getNick())
@@ -619,17 +773,7 @@ int	main( int argc, char **argv ) {
 						}
 					}
 					else if ( tmp == "PING" ) {
-						
-						// send_msg(PONG(), clients[i - 1]);
-						
-						std::time_t time = std::time(NULL);
-
-						if (client[i - 1]->getHasTime() == true )
-							std::cout << BLU <<  time - client[i - 1]->getTime() << CRESET << std::endl;
-						client[i - 1]->setTime( time );
-						std::cout << client[i - 1]->getTime() << std::endl;
-						send_msg(PONG(), clients[i - 1]);
-						client[i - 1]->setHasTime( true );
+						ping(clients, i, client);
 					}
 					else if (tmp == "USER") {
 						
@@ -647,6 +791,8 @@ int	main( int argc, char **argv ) {
 						}			
 					} else if (tmp == "JOIN") {
 						join(client, canalManager, i, tmpRest);
+					} else if (tmp == "INVITE") {
+						invite(client, canalManager, i, tmpRest);
 					}
 					else if (tmp == "MODE") {
 						mode(client, canalManager, i, tmpRest);
@@ -659,12 +805,10 @@ int	main( int argc, char **argv ) {
 						for (std::vector<std::string>::iterator it = channels.begin(); it != channels.end(); it++) {
 							std::string canalName = (*it);
 							Canal *canal = canalManager->GetChannel(canalName);
-							if (canal && canal->hasClient(client[i - 1]))
+							if (canal && canal->hasClient(client[i - 1]) && canal->getName()[0] == '#')
 							{
+								canal->broadcast(RPL_PART(client[i - 1]->getPrefix(), canal->getName()));
 								canal->deleteClient(client[i - 1]);
-								// BROADCAST PART MESSAGE FOR EVERYONE
-								send_msg("PART " + canalName + " :" + "\r\n", clients[i - 1]);
-								send_msg(":" + client[i - 1]->getNick() + "!user@host PART " + canal->getName() + " " + "\r\n", clients[i - 1]);
 							}
 						}
 					}
@@ -759,9 +903,6 @@ int	main( int argc, char **argv ) {
 				bzero(buffer, 1025);
 			}
 		}
-		ev++;
-		if (ev == 2)
-			ev = 0;
 	}
 
 

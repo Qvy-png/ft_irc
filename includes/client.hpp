@@ -6,7 +6,7 @@
 /*   By: dasereno <dasereno@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/02/22 15:14:42 by rdel-agu          #+#    #+#             */
-/*   Updated: 2023/04/04 16:19:53 by dasereno         ###   ########.fr       */
+/*   Updated: 2023/04/09 17:52:59 by dasereno         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -35,7 +35,7 @@ class Client {
         bool                        _hasTime;
         std::time_t                 _time;
         std::string                 _mode;
-        std::vector<std::string>    _invited;
+        
 
     public:
         Client( void );
@@ -61,19 +61,8 @@ class Client {
         void        setTime( std::time_t );
         void        setMode( std::string );
         void        setHasTime( bool );
-
-        void        addInvite( std::string chanName) {
-            _invited.push_back(chanName);
-        }
-        bool        isInvited( std::string chanName ) {
-            for (std::vector<std::string>::iterator it = _invited.begin(); it != _invited.end(); it++) {
-                std::string tmp = (*it);
-                if (tmp == chanName)
-                    return true;
-            }
-            return false;
-        }
         
+        std::string getPrefix( void ) { return _nick + (_fullName.empty() ? "" : "!" + _fullName) + (_host.empty() ? "" : "@" + _host);};
         std::string getPass( void );
         std::string getNick( void );
         std::string getHost( void );

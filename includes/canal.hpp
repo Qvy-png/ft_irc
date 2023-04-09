@@ -6,7 +6,7 @@
 /*   By: dasereno <dasereno@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/03/13 16:58:43 by dasereno          #+#    #+#             */
-/*   Updated: 2023/04/05 14:39:58 by dasereno         ###   ########.fr       */
+/*   Updated: 2023/04/09 18:16:17 by dasereno         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -34,9 +34,10 @@ class Canal {
 		Client			&_op;
 		std::vector<Client *>	_chanops;
 		CanalManager	*_canalManager;
-		std::vector<Client *>	_banned;
+		std::vector< std::string>	_banned;
 		std::vector<Client *>	_voiced;
 		size_t				_maxClients;
+		std::vector<std::string>    _invited;
 		bool			_modeO;
 		bool			_modeI;
 		bool			_modeT;
@@ -64,13 +65,17 @@ class Canal {
 		bool	hasClient(Client *);
 		bool	hasClient(std::string);
 		void	pushClient(Client *client) { clients.push_back(client); };
-		void	pushBanned(Client *client) { _banned.push_back(client); };
+		void	pushBanned(std::string client) { _banned.push_back(client); };
 		void	delBanned( Client *client );
+		void	delBanned( std::string client );
 		bool	isBanned(Client *client);
+		void 	resetBanned ( void ) { _banned.clear(); };
 		Client &getOp( void ) { return _op; };
 
 		bool	isOp( std::string name );
 		bool	isOp( Client *client );
+		void	broadcast(std::string msg);
+		std::vector<Client *> getClients( void ) { return clients; };
 
 		void	addOp( Client *client ) {
 			_chanops.push_back(client);
@@ -85,7 +90,23 @@ class Canal {
 		void	addVoiced( Client *client ) {
 			_voiced.push_back(client);
 		}
+		bool	isVoiced (Client *client);
+		bool	isVoiced (std::string client);
 		void	delVoiced( Client *client );
+		void 	resetVoiced ( void ) { _voiced.clear(); };
+
+        void        addInvite( std::string chanName) {
+            _invited.push_back(chanName);
+        }
+        bool        isInvited( std::string clientName ) {
+            for (std::vector<std::string>::iterator it = _invited.begin(); it != _invited.end(); it++) {
+                std::string tmp = (*it);
+                if (tmp == clientName)
+                    return true;
+            }
+            return false;
+        }
+		void 	resetInvited ( void ) { _invited.clear(); };
 
 		void			banClient(std::string name);
 		void			printBanned(void);

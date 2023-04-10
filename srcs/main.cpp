@@ -509,7 +509,7 @@ void	join(std::vector<Client *> client, CanalManager *canalManager, int i, std::
 		
 	if (!canal->hasClient(client[i - 1])) {
 		canal->pushClient(client[i - 1]);
-		std::string users ("");
+		std::string users ("");ie
 		std::vector<Client *> nicknames = canal->getClients();
 		for (std::vector<Client *>::iterator it = nicknames.begin(); it != nicknames.end(); it++) {
 			Client *tmp = *it;

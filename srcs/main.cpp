@@ -6,7 +6,7 @@
 /*   By: dasereno <dasereno@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/01/23 17:36:41 by rdel-agu          #+#    #+#             */
-/*   Updated: 2023/04/11 17:54:04 by dasereno         ###   ########.fr       */
+/*   Updated: 2023/04/11 18:00:32 by dasereno         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -949,6 +949,9 @@ int	main( int argc, char **argv ) {
 							j++;
 						}
 						
+					}
+					else if (tmp == "CAP") {
+						std::cout << "Cap command found, skipping" << std::endl;
 					}
 					else
 						send_msg(ERR_NOTIMPLEMENTED( client[i - 1]->getHost(), tmp) ,clients[i - 1]);

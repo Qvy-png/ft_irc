@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   ft_irc.h                                           :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: rdel-agu <rdel-agu@student.42.fr>          +#+  +:+       +#+        */
+/*   By: dasereno <dasereno@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/01/23 17:37:21 by rdel-agu          #+#    #+#             */
-/*   Updated: 2023/04/06 15:00:59 by rdel-agu         ###   ########.fr       */
+/*   Updated: 2023/04/09 18:36:25 by dasereno         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -124,9 +124,9 @@
 
 #define RPL_WHOREPLY(localhost, channel, user, host, nick, name) (":" + localhost + " 352 " + channel + " " + user + " " + host + " " + SERVER + " " + nick + " : 0 " + name + "\r\n")
 
-#define RPL_NAMREPLY(localhost, channel, nick) (":" + localhost + " 353 " + nick + " = " + channel + " :" + nick + " @" + nick + "\r\n" )
+//#define RPL_NAMREPLY(localhost, channel, nick) (":" + localhost + " 353 " + nick + " = " + channel + " :" + nick + " @" + nick + "\r\n" )
 
-#define RPL_ENDOFNAMES(localhost, nick, channel) (":" + localhost + " 366 " + nick + " " + channel + " :End of /NAMES list\r\n")
+//#define RPL_ENDOFNAMES(localhost, nick, channel) (":" + localhost + " 366 " + nick + " " + channel + " :End of /NAMES list\r\n")
 
 #define RPL_MOTD(localhost, text) (":" + localhost + " 372 :-" + text + "\r\n")
 
@@ -136,13 +136,13 @@
 
 #define RPL_YOUREOPER(localhost) (":" + localhost + " 381 : You are now an IRC operator\r\n")
 
-#define ERR_NOSUCHNICK(nick, channel) ("401 " + nick + " " + channel + ": No such nick/channel\r\n")
+#define ERR_NOSUCHNICK(source, nickname)				"401 " + source + " " + nickname + " :No such nick/channel\r\n"
 
 #define ERR_NOSUCHSERVER(localhost, serv) (":" + localhost + " 402 " + serv + " :No such server\r\n")
 
 #define ERR_NOSUCHCHANNEL(nick, channel) (/*":" + localhost + */"403 " + nick + " " + channel + " :No such channel\r\n")
 
-#define ERR_CANNOTSENDTOCHAN(localhost, nick, channel) (":" + localhost + " 404 " + nick + " " + channel + " :Cannot send to channel\r\n")
+//#define ERR_CANNOTSENDTOCHAN(localhost, nick, channel) (":" + localhost + " 404 " + nick + " " + channel + " :Cannot send to channel\r\n")
 
 #define ERR_TOOMANYCHANNELS(localhost, channel) (":" + localhost + " 405 " + channel + " :You have joined too many channels\r\n")
 
@@ -170,8 +170,10 @@
 
 #define ERR_USERNOTINCHANNEL(localhost, user, nick, channel) (":" + localhost + " 441 " + user + " " + nick + " " + channel + " :They aren't on that channel\r\n")
 
-#define ERR_NOTONCHANNEL(localhost, channel) (":" + localhost + " 442 " + channel + " :You're not on that channel\r\n")
-
+//#define ERR_NOTONCHANNEL(localhost, channel) (":" + localhost + " 442 " + channel + " :You're not on that channel\r\n")
+#define ERR_NOTONCHANNEL(source, channel)				"442 " + source + " " + channel + " :You're not channel operator\r\n"
+#define ERR_CHANOPRIVSNEEDED(source, channel)				"482 " + source + " " + channel + " :You're not on that channel\r\n"
+//#define ERR_USERONCHANNEL(source, channel)				"443 " + source + " " + channel + " :is already on channel\r\n
 #define ERR_USERONCHANNEL(localhost, user, channel) (":" + localhost + " 443 " + user + " " + channel + " :is already on channel\r\n")
 
 #define ERR_NOTREGISTERED(localhost) (":" + localhost + " 451 :You have not registered\r\n")
@@ -184,19 +186,22 @@
 
 #define ERR_KEYSET(localhost, channel) (":" + localhost + " 467 " + channel + " :Channel key already set\r\n")
 
-#define ERR_CHANNELISFULL(localhost, channel) (":" + localhost + " 471 " + channel + " :Cannot join channel (+l)\r\n")
+#define ERR_CHANNELISFULL(source, channel)				"471 " + source + " " + channel + " :Cannot join channel (+l)\r\n"
 
-#define ERR_INVITEONLYCHAN(localhost, channel) (":" + localhost + " 473 " + channel + " :Cannot join channel (+i)\r\n")
+#define ERR_INVITEONLYCHAN(source, channel)				"473 " + source + " " + channel + " :Cannot join channel (+i)\r\n"
 
-#define ERR_BANNEDFROMCHAN(localhost, channel) (":" + localhost + " 474 " + channel + " :Cannot join channel (+b)\r\n")
+#define ERR_CANNOTSENDTOCHAN(source, channel)				"404 " + source + " " + channel + " :Cannot send to channel\r\n"
 
-#define ERR_BADCHANNELKEY(localhost, channel) (":" + localhost + " 475 " + channel + " :Cannot join channel (+k)\r\n")
+#define ERR_BANNEDFROMCHAN(source, channel)				"474 " + source + " " + channel + " :Cannot join channel (+b)\r\n"
+
+#define ERR_BADCHANNELKEY(source, channel)				"475 " + source + " " + channel + " :Cannot join channel (+k)\r\n"
+
+#define ERR_UNKNOWNMODE(source, character)				"472 " + source + " " + character + " :is unknown mode char to me\r\n"
 
 #define ERR_BADCHANMASK(localhost, channel) (":" + localhost + " 476 " + channel + " :Bad Channel Mask\r\n")
 
 #define ERR_NOPRIVILEGES(localhost) (":" + localhost + " 481 :Permission Denied- You're not an IRC operator\r\n")
 
-#define ERR_CHANOPRIVSNEEDED(localhost, channel) (":" + localhost + " 482 " + channel + " :You're not channel operator\r\n")
 
 #define ERR_CANTKILLSERVER(localhost) (":" + localhost + " 483 :You can't kill a server!\r\n")
 
@@ -206,6 +211,16 @@
 
 #define ERR_UMODEUNKNOWNFLAG(localhost) (":" + localhost + " 501 :Unknown MODE flag\r\n")
 
+
 #define ERR_USERSDONTMATCH(localhost, nick) (":" + localhost + " 502 " + nick + " :Cannot change mode for other users\r\n")
+
+
+#define RPL_JOIN(source, channel)					":" + source + " JOIN :" + channel + "\r\n"
+#define RPL_PART(source, channel)					":" + source + " PART :" + channel + "\r\n"
+#define RPL_PRIVMSG(source, target, message)		":" + source + " PRIVMSG " + target + " " + message + "\r\n"
+#define RPL_NAMREPLY(source, channel, users)	"353 " + source + " = " + channel + " :" + users + "\r\n"
+#define RPL_ENDOFNAMES(source, channel)			"366 " + source + " " + channel + " :End of /NAMES list." + "\r\n"
+#define RPL_MODE(source, channel, modes, args)		":" + source + " MODE " + channel + " " + modes + " " + args + "\r\n"
+//#define RPL_INVITING(source, canal)					"341 " + source + " JOIN :" + channel + "\r\n"
 
 #endif

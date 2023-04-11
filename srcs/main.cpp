@@ -6,7 +6,7 @@
 /*   By: dasereno <dasereno@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/01/23 17:36:41 by rdel-agu          #+#    #+#             */
-/*   Updated: 2023/04/09 18:39:20 by dasereno         ###   ########.fr       */
+/*   Updated: 2023/04/11 17:54:04 by dasereno         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -154,18 +154,25 @@ void	kick(std::vector<Client *> client, int i, std::string tmpRest, CanalManager
 	std::cout << "Client #" << i << " KICK channel "<< tmpRest << std::endl;
 	// std::string args = tmpRest.substr(tmpRest.find(':') + 1, tmpRest.size());
 	std::string channel = tmpRest.substr(0, tmpRest.find(' '));
-	std::string toKick = tmpRest.substr(tmpRest.find(' ') + 1, tmpRest.size());
-	if (toKick.find(':') != toKick.npos)
-		toKick.erase(toKick.find(':'));
-	if (toKick.find(' ') != toKick.npos)
-		toKick.erase(toKick.find(' '));
+	std::string toKick = tmpRest.substr(tmpRest.find(' ') + 1, tmpRest.find(':') - tmpRest.find(' ') - 2);
+	std::string reason = tmpRest.substr(tmpRest.find(':') + 1, tmpRest.size());
+	// if (toKick.find(':') != toKick.npos)
+		// toKick.erase(toKick.find(':'));
+	// if (toKick.find(' ') != toKick.npos)
+		// toKick.erase(toKick.find(' '));
+	if (channel.size() == 0 || (channel[0] != '#' && channel[0] != '&' )|| tmpRest.find(':') == tmpRest.npos) {
+		send_msg(ERR_NEEDMOREPARAMS(client[i - 1]->getNick(), "KICK"), client[i - 1]->getFd());
+		return ;
+	}
 	std::cout << tmpRest << std::endl;
 	std::cout << channel << std::endl;
-	std::cout << toKick << std::endl;
+	std::cout << "(" << toKick << ")" << std::endl;
+	std::cout  << "(" << reason << ")" << std::endl;
+	std::cout << tmpRest.find(':') << std::endl;
 	Canal *canal = canalManager->GetChannel(channel);
 	if (canal == NULL)
 		return ;
-	if (!canal->getClient(client[i - 1]->getNick())) {
+	if (!canal->hasClient(client[i - 1]->getNick())) {
 		send_msg(ERR_NOTONCHANNEL(client[i - 1]->getNick(), canal->getName()), client[i - 1]->getFd());
 		return ;
 	}
@@ -173,17 +180,21 @@ void	kick(std::vector<Client *> client, int i, std::string tmpRest, CanalManager
 		send_msg(ERR_CHANOPRIVSNEEDED(client[i - 1]->getNick(), channel), client[i - 1]->getFd());
 		return ;
 	}
-	Client *cli = canal->getClient(toKick);
-	if (cli == NULL)
+	if (!canal->hasClient(toKick)) {
+		send_msg(ERR_USERNOTINCHANNEL(client[i - 1]->getNick(), toKick, channel), client[i - 1]->getFd());
 		return ;
+	}
+	Client *cli = canal->getClient(toKick);
+	if (cli == NULL) {
+		send_msg(ERR_USERNOTINCHANNEL(client[i - 1]->getNick(), toKick, channel), client[i - 1]->getFd());
+		return ;
+	}
 	if (canal->hasClient(cli))
 	{
-		canal->broadcast(KICK(client[i - 1]->getNick(), channel, cli->getNick()));
+		canal->broadcast(KICK(client[i - 1]->getNick(), channel, toKick, reason));
 		canal->deleteClient(cli);
-		std::cout << "il a quitte" << std::endl;
 	} else {
-		// send_msg(ERR_USERNOTINCHANNEL(client[i - 1]->getNick(), client[i - 1]->getNick(), cli->getNick(), channel), client[i - 1]->getFd());
-		std::cout << "non kickage" << std::endl;
+		send_msg(ERR_USERNOTINCHANNEL(client[i - 1]->getNick(), toKick, channel), client[i - 1]->getFd());
 	}
 						
 }
@@ -250,7 +261,11 @@ void	invite(std::vector<Client *> client, CanalManager *canalManager, int i, std
 
 	if (!canal->getModeI())
 		return ;
-	if (!canal || !canal->getClient(client[i - 1]->getNick())) {
+	if (!canal) {
+		send_msg(ERR_NOSUCHCHANNEL(client[i - 1]->getNick(), channel), client[i - 1]->getFd());
+		return ;
+	}
+	if (!canal->getClient(client[i - 1]->getNick())) {
 		send_msg(ERR_NOTONCHANNEL(client[i - 1]->getNick(), channel), client[i - 1]->getFd());
 		return ;
 	}
@@ -258,16 +273,12 @@ void	invite(std::vector<Client *> client, CanalManager *canalManager, int i, std
 		send_msg(ERR_CHANOPRIVSNEEDED(client[i - 1]->getNick(), channel), client[i - 1]->getFd());
 		return ;
 	}
-	if (!getClient(client, invited)) {
-		send_msg(ERR_NOSUCHNICK(client[i - 1]->getNick(), invited), client[i - 1]->getFd());
-		return ;
-	}
 	if (canal->getClient(invited)) {
 		send_msg(ERR_USERONCHANNEL(client[i - 1]->getNick(), invited, canal->getName()), client[i - 1]->getFd());
 		return ;
 	}
 	canal->addInvite(invited);
-	canal->broadcast(RPL_INVITING(client[i - 1]->getNick(), channel, invited));
+	send_msg(RPL_INVITING(client[i - 1]->getNick(), invited, channel), client[i - 1]->getFd());
 }
 
 void	mode(std::vector<Client *> client, CanalManager *canalManager, int i, std::string tmpRest) {
@@ -287,12 +298,29 @@ void	mode(std::vector<Client *> client, CanalManager *canalManager, int i, std::
 	if (args[0][0] == '#' || args[0][0] == '&') { // CHANNEL MODE
 		Canal *canal = canalManager->GetChannel(args[0]);
 		if (!canal) {
-			//BAD CANAL
+			send_msg(ERR_NOSUCHCHANNEL(client[i - 1]->getNick(), args[0]), client[i - 1]->getFd());
 			return ;
 		}
+		if (!canal->hasClient(client[i - 1])) {
+			// send_msg
+		}
 		bool block = false;
-		if (args[1][0] == '+') { // ADD MODES
-			for (int i = 1; args[1][i]; i++) {
+		bool sign = false; // true = '+' / false = '-'
+		// if (args[1][0] == '+') { // ADD MODES
+		if (args[1][0] != '+' && args[1][0] != '-') {
+			send_msg(ERR_UNKNOWNMODE(client[i - 1]->getNick(), args[1][i]), client[i - 1]->getFd());
+			return ;
+		}
+		for (int i = 0; args[1][i]; i++) {
+			std::cout << "ICI" << std::endl;
+			if (args[1][i] == '+') {
+				sign = true;
+				continue ;
+			} else if (args[1][i] == '-') {
+				sign = false;
+				continue ;
+			}
+			if (sign) { // '+'
 				switch (args[1][i])
 				{
 				case 'k':
@@ -302,17 +330,18 @@ void	mode(std::vector<Client *> client, CanalManager *canalManager, int i, std::
 					canal->setModeK(true);
 					std::cout << "Pass set to : " << args[2] << std::endl; 
 					block = true;
-					canal->broadcast(RPL_MODE(client[i - 1]->getPrefix(), canal->getName(), "+k", args[2]));
+					send_msg(RPL_MODE(client[i - 1]->getPrefix(), canal->getName(), "+k", args[2]), client[i - 1]->getFd());
 					std::cout << args[2] << std::endl;
 					break;
 				case 'b': // IF ARGS size == 2 => PRINT BANNED USERS
-					if (args.size() != 3 || !canal->isOp(client[i - 1]))
+					if (args.size() < 3 || !canal->isOp(client[i - 1]))
 						break ;
 					canal->banClient(args[2]);
 					canal->printBanned();
 					canal->setModeB(true);
-					canal->broadcast(RPL_MODE(client[i - 1]->getPrefix(), canal->getName(), "+b", args[2]));
+					send_msg(RPL_MODE(client[i - 1]->getPrefix(), canal->getName(), "+b", args[2]), client[i - 1]->getFd());
 					block = true;
+					std::cout << "mode B activated" << std::endl;
 					break ;
 				case 'o' : // IF ARGS size == 2 => PRINT OPERATOR USERS
 					if (args.size() < 3 || !canal->isOp(client[i - 1]))
@@ -321,27 +350,30 @@ void	mode(std::vector<Client *> client, CanalManager *canalManager, int i, std::
 						canal->addOp(canal->getClient(args[2]));
 					} else
 						break ;
-					canal->broadcast(RPL_MODE(client[i - 1]->getPrefix(), canal->getName(), "+o", args[2]));
+					send_msg(RPL_MODE(client[i - 1]->getPrefix(), canal->getName(), "+o", args[2]), client[i - 1]->getFd());
 					block = true;
 					break ;
 				case 'i' :
-					if (canal->getModeI() || !canal->isOp(client[i - 1]))
+					if (canal->getModeI() || !canal->isOp(client[i - 1])) {
+						std::cout << "yo c ici ca quitte" << std::endl;
+						std::cout << canal->isOp(client[i - 1]) << std::endl;
 						break ;
+					}
 					canal->setModeI(true);
-					canal->broadcast(RPL_MODE(client[i - 1]->getPrefix(), canal->getName(), "+i", ""));
+					send_msg(RPL_MODE(client[i - 1]->getPrefix(), canal->getName(), "+i", ""), client[i - 1]->getFd());
 					break ;
 				case 'm' :
 					if (canal->getModeM() || !canal->isOp(client[i - 1]))
 						break ;
 					canal->setModeM(true);
-					canal->broadcast(RPL_MODE(client[i - 1]->getPrefix(), canal->getName(), "+m", ""));
+					send_msg(RPL_MODE(client[i - 1]->getPrefix(), canal->getName(), "+m", ""), client[i - 1]->getFd());
 					break ;
 				case 'l' :
 					if (!canal->isOp(client[i - 1]) || args.size() < 3 || !str_isnum(args[2]))
 						break ;
 					canal->setModeL(true);
 					canal->setMaxClient(atoi(args[2].c_str()));
-					canal->broadcast(RPL_MODE(client[i - 1]->getPrefix(), canal->getName(), "+l", args[2]));
+					send_msg(RPL_MODE(client[i - 1]->getPrefix(), canal->getName(), "+l", args[2]), client[i - 1]->getFd());
 					block = true;
 					break ;
 				case 'v' :
@@ -352,17 +384,13 @@ void	mode(std::vector<Client *> client, CanalManager *canalManager, int i, std::
 						canal->addVoiced(canal->getClient(args[2]));
 					}
 					block = true;
-					canal->broadcast(RPL_MODE(client[i - 1]->getPrefix(), canal->getName(), "+v", args[2]));
+					send_msg(RPL_MODE(client[i - 1]->getPrefix(), canal->getName(), "+v", args[2]), client[i - 1]->getFd());
 					break ;
 				default:
 					send_msg(ERR_UNKNOWNMODE(client[i - 1]->getNick(), args[1][i]), client[i - 1]->getFd());
 					return ;
 				}
-				if (block)
-					return ;
-			}
-		} else if (args[2][0] == '-') { // REMOVE MODES
-			for (int i = 1; args[1][i]; i++) {
+			} else {
 				switch (args[1][i])
 				{
 				case 'k':
@@ -370,18 +398,18 @@ void	mode(std::vector<Client *> client, CanalManager *canalManager, int i, std::
 						break ;
 					canal->setPass("");
 					canal->setModeK(false);
-					canal->broadcast(RPL_MODE(client[i - 1]->getPrefix(), canal->getName(), "-k", ""));
+					send_msg(RPL_MODE(client[i - 1]->getPrefix(), canal->getName(), "-k", ""), client[i - 1]->getFd());
 					break;
 				case 'b': // IF ARGS size == 2 => PRINT BANNED USERS
 					if (!canal->isOp(client[i - 1]))
 						break ;
 					if (args.size() != 3) {
 						canal->setModeB(false);
-						canal->broadcast(RPL_MODE(client[i - 1]->getPrefix(), canal->getName(), "-b", ""));
+						send_msg(RPL_MODE(client[i - 1]->getPrefix(), canal->getName(), "-b", ""), client[i - 1]->getFd());
 						canal->resetBanned();
 					} else if (args.size() == 3) {
 						canal->delBanned(args[2]);
-						canal->broadcast(RPL_MODE(client[i - 1]->getPrefix(), canal->getName(), "-b", args[2]));
+						send_msg(RPL_MODE(client[i - 1]->getPrefix(), canal->getName(), "-b", args[2]), client[i - 1]->getFd());
 						block = true;
 					}
 					break ;
@@ -390,7 +418,7 @@ void	mode(std::vector<Client *> client, CanalManager *canalManager, int i, std::
 						break ;
 					if (args.size() == 3 && canal->hasClient(args[2])) {
 						canal->delOp(canal->getClient(args[2]));
-						canal->broadcast(RPL_MODE(client[i - 1]->getPrefix(), canal->getName(), "-o", args[2]));
+						send_msg(RPL_MODE(client[i - 1]->getPrefix(), canal->getName(), "-o", args[2]), client[i - 1]->getFd());
 						block = true;
 					} else 
 						break ;
@@ -400,20 +428,20 @@ void	mode(std::vector<Client *> client, CanalManager *canalManager, int i, std::
 						break ;
 					canal->setModeI(false);
 					canal->resetInvited();
-					canal->broadcast(RPL_MODE(client[i - 1]->getPrefix(), canal->getName(), "-i", ""));
+					send_msg(RPL_MODE(client[i - 1]->getPrefix(), canal->getName(), "-i", ""), client[i - 1]->getFd());
 					break ;
 				case 'm' :
 					if (!canal->getModeM() || !canal->isOp(client[i - 1]))
 						break ;
 					canal->setModeM(false);
-					canal->broadcast(RPL_MODE(client[i - 1]->getPrefix(), canal->getName(), "-m", ""));
+					send_msg(RPL_MODE(client[i - 1]->getPrefix(), canal->getName(), "-m", ""), client[i - 1]->getFd());
 					break ;
 				case 'l' :
 					if (!canal->getModeL() || !canal->isOp(client[i - 1]))
 						break ;
 					canal->setModeL(false);
 					canal->setMaxClient(0);
-					canal->broadcast(RPL_MODE(client[i - 1]->getPrefix(), canal->getName(), "-l",  ""));
+					send_msg(RPL_MODE(client[i - 1]->getPrefix(), canal->getName(), "-l",  ""), client[i - 1]->getFd());
 					block = true;
 					break ;
 				case 'v' :
@@ -421,11 +449,11 @@ void	mode(std::vector<Client *> client, CanalManager *canalManager, int i, std::
 						break ;
 					if ( args.size() < 3) {
 						canal->setModeV(false);
-						canal->broadcast(RPL_MODE(client[i - 1]->getPrefix(), canal->getName(), "-v", ""));
+						send_msg(RPL_MODE(client[i - 1]->getPrefix(), canal->getName(), "-v", ""), client[i - 1]->getFd());
 						canal->resetVoiced();
 					} else if (args.size() == 3 && canal->getClient(args[2])) {
 						canal->delVoiced(canal->getClient(args[2]));
-						canal->broadcast(RPL_MODE(client[i - 1]->getPrefix(), canal->getName(), "-v", args[2]));
+						send_msg(RPL_MODE(client[i - 1]->getPrefix(), canal->getName(), "-v", args[2]), client[i - 1]->getFd());
 						block = true;
 					}
 					break ;
@@ -433,10 +461,11 @@ void	mode(std::vector<Client *> client, CanalManager *canalManager, int i, std::
 					send_msg(ERR_UNKNOWNMODE(client[i - 1]->getNick(), args[1][i]), client[i - 1]->getFd());
 					return ;
 				}
-				if (block)
-					return ;
 			}
+			if (block)
+					return ;
 		}
+		// }
 	} else { // USER MODE
 		// if (args[2][0] == '+') { // ADD MODES
 		// 	for (int i = 1; args[2][i]; i++) {
@@ -462,6 +491,11 @@ void	join(std::vector<Client *> client, CanalManager *canalManager, int i, std::
 		pass = tmpRest.substr(tmpRest.find(' ') + 1, tmpRest.size());
 	}
 	// split tmpRest en 2
+	if (name[0] != '#' && name[0] != '&')
+	{
+		send_msg(ERR_BADCHANMASK(name), client[i - 1]->getFd());
+		return ;
+	}
 	Canal *canal = canalManager->GetChannel(name);
 	if (canal == NULL) {
 		canal = canalManager->CreateChannel(tmpRest, client[i - 1]);
@@ -480,6 +514,7 @@ void	join(std::vector<Client *> client, CanalManager *canalManager, int i, std::
 		std::cout << "RPL_ENDOFNAMES : " << RPL_ENDOFNAMES(client[i - 1]->getNick(), canal->getName()) << std::endl;
 		canal->broadcast(RPL_JOIN(client[i - 1]->getPrefix(), canal->getName()));
 		std::cout << "RPL_JOIN : " << RPL_JOIN(client[i - 1]->getPrefix(), canal->getName()) << std::endl;
+		send_msg(RPL_NOTOPIC(client[i - 1]->getNick(), name), client[ i - 1]->getFd());
 	}
 	if (canal->getModeK()) {
 		if (pass.size() != 0 && pass == canal->getPass()) { }
@@ -509,7 +544,7 @@ void	join(std::vector<Client *> client, CanalManager *canalManager, int i, std::
 		
 	if (!canal->hasClient(client[i - 1])) {
 		canal->pushClient(client[i - 1]);
-		std::string users ("");ie
+		std::string users ("");
 		std::vector<Client *> nicknames = canal->getClients();
 		for (std::vector<Client *>::iterator it = nicknames.begin(); it != nicknames.end(); it++) {
 			Client *tmp = *it;
@@ -524,8 +559,57 @@ void	join(std::vector<Client *> client, CanalManager *canalManager, int i, std::
 		std::cout << "RPL_ENDOFNAMES : " << RPL_ENDOFNAMES(client[i - 1]->getNick(), canal->getName()) << std::endl;
 		canal->broadcast(RPL_JOIN(client[i - 1]->getPrefix(), canal->getName()));
 		std::cout << "RPL_JOIN : " << RPL_JOIN(client[i - 1]->getPrefix(), canal->getName()) << std::endl;
+		if (canal->getTopic().size() > 0)
+			send_msg(RPL_TOPIC(client[i - 1]->getNick(), name, canal->getTopic()), client[ i - 1]->getFd());
+		else
+			send_msg(RPL_NOTOPIC(client[i - 1]->getNick(), name), client[ i - 1]->getFd());
 	}
 
+}
+
+void	topic(std::vector<Client *> client, CanalManager *canalManager, int i, std::string tmpRest) {
+	if (tmpRest.find(":") == tmpRest.npos) {
+		// get topic
+	} else if (tmpRest.find(":") == tmpRest.size() || tmpRest.find(":") + 1 == tmpRest.size()) {
+		// clear topic
+		std::string channel = tmpRest.substr(0, tmpRest.find(":") - 1);
+		Canal *canal = canalManager->GetChannel(channel);
+		if (channel.size() == 0 || (channel[0] != '#' && channel[0] != '&') || !canal) {
+			send_msg(ERR_NOSUCHCHANNEL(client[i - 1]->getNick(), channel), client[i - 1]->getFd());
+			return ;
+		}
+		if (!canal->hasClient(client[i - 1]->getNick())) {
+			send_msg(ERR_NOTONCHANNEL(client[i - 1]->getNick(), channel), client[i - 1]->getFd());
+			return ;
+		}
+		if (!canal->isOp(client[i - 1])) {
+			send_msg(ERR_CHANOPRIVSNEEDED(client[i - 1]->getNick(), channel), client[i - 1]->getFd());
+			return ;
+		}
+		canal->broadcast(RPL_NOTOPIC(client[i - 1]->getNick(), channel));
+		canal->setTopic("");
+		return ;
+	} else {
+		std::string channel = tmpRest.substr(0, tmpRest.find(":")- 1);
+		std::string topic = tmpRest.substr(tmpRest.find(":") + 1, tmpRest.size());
+		std::cout << "channel : " << channel << std::endl;
+		std::cout << "topic : " << topic << std::endl;
+		Canal *canal = canalManager->GetChannel(channel);
+		if (channel.size() == 0 || (channel[0] != '#' && channel[0] != '&') || !canal) {
+			send_msg(ERR_NOSUCHCHANNEL(client[i - 1]->getNick(), channel), client[i - 1]->getFd());
+			return ;
+		}
+		if (!canal->hasClient(client[i - 1]->getNick())) {
+			send_msg(ERR_NOTONCHANNEL(client[i - 1]->getNick(), channel), client[i - 1]->getFd());
+			return ;
+		}
+		if (!canal->isOp(client[i - 1])) {
+			send_msg(ERR_CHANOPRIVSNEEDED(client[i - 1]->getNick(), channel), client[i - 1]->getFd());
+			return ;
+		}
+		canal->setTopic(topic);
+		canal->broadcast(RPL_TOPIC(client[i - 1]->getNick(), channel, topic));
+	}
 }
 
 std::vector<Client*> client;
@@ -796,6 +880,8 @@ int	main( int argc, char **argv ) {
 					}
 					else if (tmp == "MODE") {
 						mode(client, canalManager, i, tmpRest);
+					} else if (tmp == "TOPIC") {
+						topic(client, canalManager, i, tmpRest);
 					}
 					else if (tmp == "PART") {
 

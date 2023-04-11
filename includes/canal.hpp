@@ -6,7 +6,7 @@
 /*   By: dasereno <dasereno@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/03/13 16:58:43 by dasereno          #+#    #+#             */
-/*   Updated: 2023/04/09 18:16:17 by dasereno         ###   ########.fr       */
+/*   Updated: 2023/04/11 17:47:46 by dasereno         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -38,6 +38,9 @@ class Canal {
 		std::vector<Client *>	_voiced;
 		size_t				_maxClients;
 		std::vector<std::string>    _invited;
+		std::string	_topic;
+		time_t		_tmTopic;
+
 		bool			_modeO;
 		bool			_modeI;
 		bool			_modeT;
@@ -52,7 +55,7 @@ class Canal {
 		std::vector<Client *> clients;
 		std::vector<Message *> waitingMessages;
 
-		Canal( std::string name, Client & op, CanalManager *cm ): _name(name), _pass(""), _op(op), _canalManager(cm), 
+		Canal( std::string name, Client & op, CanalManager *cm ): _name(name), _pass(""), _op(op), _canalManager(cm), _topic(""), _tmTopic(0),
 		_modeO(false), _modeI(false), _modeT(false), _modeM(false), _modeN(false), _modeL(false), _modeB(false), _modeK(false) { _chanops.push_back(&op); };
 		~Canal( void ) { return ;};
 
@@ -69,8 +72,12 @@ class Canal {
 		void	delBanned( Client *client );
 		void	delBanned( std::string client );
 		bool	isBanned(Client *client);
+		bool	isBanned(std::string client);
 		void 	resetBanned ( void ) { _banned.clear(); };
 		Client &getOp( void ) { return _op; };
+
+		void	setTopic(std::string topic) { _topic = topic; _tmTopic = time(0); };
+		std::string getTopic( void ) { return _topic; };
 
 		bool	isOp( std::string name );
 		bool	isOp( Client *client );
@@ -88,15 +95,24 @@ class Canal {
 		size_t		getMaxClient( void ) { return _maxClients; };
 
 		void	addVoiced( Client *client ) {
-			_voiced.push_back(client);
+			if (!isVoiced(client)) {
+				std::cout << "Pushed" << std::endl;
+				_voiced.push_back(client);
+			}
+		}
+		void	printVoiced(void) {
+			for (size_t i =0; i < _voiced.size(); i++) {
+				std::cout << _voiced[i] << std::endl;
+			}
 		}
 		bool	isVoiced (Client *client);
 		bool	isVoiced (std::string client);
 		void	delVoiced( Client *client );
 		void 	resetVoiced ( void ) { _voiced.clear(); };
 
-        void        addInvite( std::string chanName) {
-            _invited.push_back(chanName);
+        void        addInvite( std::string name) {
+			if (!isInvited(name))
+            	_invited.push_back(name);
         }
         bool        isInvited( std::string clientName ) {
             for (std::vector<std::string>::iterator it = _invited.begin(); it != _invited.end(); it++) {

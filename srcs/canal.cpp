@@ -6,7 +6,7 @@
 /*   By: dasereno <dasereno@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/03/13 17:39:26 by dasereno          #+#    #+#             */
-/*   Updated: 2023/04/09 18:16:20 by dasereno         ###   ########.fr       */
+/*   Updated: 2023/04/11 17:50:19 by dasereno         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -73,7 +73,8 @@ Client *Canal::getClient(std::string name) {
 }
 
 void    Canal::banClient(std::string name) {
-    this->pushBanned(name);
+    if (!isBanned(name))
+        this->pushBanned(name);
 }
 
 bool    Canal::isBanned(Client *client) {
@@ -81,6 +82,16 @@ bool    Canal::isBanned(Client *client) {
     for (; it != _banned.end(); it++) {
         std::string tmp = (*it);
         if (tmp == client->getNick())
+            return true;
+    }
+    return false;
+}
+
+bool    Canal::isBanned(std::string client) {
+    std::vector<std::string>::iterator	it = _banned.begin();
+    for (; it != _banned.end(); it++) {
+        std::string tmp = (*it);
+        if (tmp == client)
             return true;
     }
     return false;
@@ -97,6 +108,8 @@ void    Canal::printBanned(void) {
 
 bool	Canal::isOp( std::string name ) { 
     std::vector<Client *>::iterator	it = _chanops.begin();
+    if (name == getOp().getNick())
+        return true;
     for (; it != _chanops.end(); it++) {
         Client *tmp = (*it);
         if (tmp != NULL && tmp->getNick() == name)
@@ -107,6 +120,8 @@ bool	Canal::isOp( std::string name ) {
 
 bool	Canal::isOp( Client *client ) { 
     std::vector<Client *>::iterator	it = _chanops.begin();
+    if (client->getNick() == getOp().getNick())
+        return true;
     for (; it != _chanops.end(); it++) {
         Client *tmp = (*it);
         if (tmp != NULL && tmp->getNick() == client->getNick())
@@ -116,8 +131,8 @@ bool	Canal::isOp( Client *client ) {
 }
 
 bool	Canal::isVoiced( std::string name ) { 
-    std::vector<Client *>::iterator	it = _chanops.begin();
-    for (; it != _chanops.end(); it++) {
+    std::vector<Client *>::iterator	it = _voiced.begin();
+    for (; it != _voiced.end(); it++) {
         Client *tmp = (*it);
         if (tmp != NULL && tmp->getNick() == name)
             return true;
@@ -126,8 +141,8 @@ bool	Canal::isVoiced( std::string name ) {
 }
 
 bool	Canal::isVoiced( Client *client ) { 
-    std::vector<Client *>::iterator	it = _chanops.begin();
-    for (; it != _chanops.end(); it++) {
+    std::vector<Client *>::iterator	it = _voiced.begin();
+    for (; it != _voiced.end(); it++) {
         Client *tmp = (*it);
         if (tmp != NULL && tmp->getNick() == client->getNick())
             return true;

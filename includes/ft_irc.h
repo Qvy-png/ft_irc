@@ -6,7 +6,7 @@
 /*   By: dasereno <dasereno@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/01/23 17:37:21 by rdel-agu          #+#    #+#             */
-/*   Updated: 2023/04/09 18:36:25 by dasereno         ###   ########.fr       */
+/*   Updated: 2023/04/10 17:46:57 by dasereno         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -82,7 +82,7 @@
 
 #define JOIN(localhost, chan) (":" + localhost + " JOIN " + chan + "\r\n")
 
-#define KICK(localhost, chan, nick) (":" + localhost + " KICK " + chan + " " + nick + "\r\n")
+#define KICK(localhost, chan, nick, reason) (":" + localhost + " KICK " + chan + " " + nick + " " + reason + "\r\n")
 
 #define RPL_AWAY(localhost, nick, msg) (":" + localhost + " 301 :" + nick + msg + "\r\n")
 
@@ -112,11 +112,9 @@
 
 #define RPL_CHANNELMODEIS(localhost, channel, mode) (":" + localhost + " 324 " + mode + " " + channel + " :" + mode +  "\r\n")
 
-#define RPL_NOTOPIC(lcalhost, channel) (":" + localhost + " 331 " + channel + " :No topic is set")
+#define RPL_NOTOPIC(localhost, channel) (":" + localhost + " 331 " + channel + " :No topic is set\r\n")
 
-#define RPL_TOPIC(localhost, channel, topic) (":" + localhost + " 332 " + channel + " :" + topic + "\r\n")
-
-#define RPL_INVITING(localhost, channel, nick) (":" + localhost + " 341 " + " INVITE " + nick + " " + channel + "\r\n")
+#define RPL_INVITING(source, nick, channel) ("341 " + source + " " + nick + " " + channel + "\r\n")
 
 #define RPL_INVITELIST(localhost, channel, invitemask) (":" + localhost + " 346 " + channel + " " + invitemask)
 
@@ -168,17 +166,19 @@
 
 #define ERR_UNAVAILRESOURCE(localhost, nick_chan) (":" + localhost + " 437 " + nick_chan + " :Nick/channel is temporarily unavailable\r\n")
 
-#define ERR_USERNOTINCHANNEL(localhost, user, nick, channel) (":" + localhost + " 441 " + user + " " + nick + " " + channel + " :They aren't on that channel\r\n")
+#define RPL_TOPIC(source, channel, topic) "332 " + source + " " + channel + " :" + topic + "\r\n"
 
+// #define ERR_USERNOTINCHANNEL(localhost, user, nick, channel) (":" + localhost + " 441 " + user + " " + nick + " " + channel + " :They aren't on that channel\r\n")
+#define ERR_USERNOTINCHANNEL(source, nickname, channel)	"441 " + source + " " + nickname + " " + channel + " :They aren't on that channel\r\n"
 //#define ERR_NOTONCHANNEL(localhost, channel) (":" + localhost + " 442 " + channel + " :You're not on that channel\r\n")
-#define ERR_NOTONCHANNEL(source, channel)				"442 " + source + " " + channel + " :You're not channel operator\r\n"
-#define ERR_CHANOPRIVSNEEDED(source, channel)				"482 " + source + " " + channel + " :You're not on that channel\r\n"
+#define ERR_NOTONCHANNEL(source, channel)				"442 " + source + " " + channel + " :You're not on that channel\r\n"
+#define ERR_CHANOPRIVSNEEDED(source, channel)				"482 " + source + " " + channel + " :You're not channel operator\r\n"
 //#define ERR_USERONCHANNEL(source, channel)				"443 " + source + " " + channel + " :is already on channel\r\n
 #define ERR_USERONCHANNEL(localhost, user, channel) (":" + localhost + " 443 " + user + " " + channel + " :is already on channel\r\n")
 
 #define ERR_NOTREGISTERED(localhost) (":" + localhost + " 451 :You have not registered\r\n")
 
-#define ERR_NEEDMOREPARAMS(localhost, key) (":" + localhost + " 461 " + key + " :Not enough parameters\r\n")
+#define ERR_NEEDMOREPARAMS(source, command)				"461 " + source + " " + command + " :Not enough parameters\r\n"
 
 #define ERR_ALREADYREGISTRED(localhost) (":" + localhost + " 462 :Unauthorized command (already registered)\r\n")
 
@@ -198,7 +198,7 @@
 
 #define ERR_UNKNOWNMODE(source, character)				"472 " + source + " " + character + " :is unknown mode char to me\r\n"
 
-#define ERR_BADCHANMASK(localhost, channel) (":" + localhost + " 476 " + channel + " :Bad Channel Mask\r\n")
+#define ERR_BADCHANMASK(chan) ("476 " + chan + " :Bad Channel Mask")
 
 #define ERR_NOPRIVILEGES(localhost) (":" + localhost + " 481 :Permission Denied- You're not an IRC operator\r\n")
 
@@ -222,5 +222,6 @@
 #define RPL_ENDOFNAMES(source, channel)			"366 " + source + " " + channel + " :End of /NAMES list." + "\r\n"
 #define RPL_MODE(source, channel, modes, args)		":" + source + " MODE " + channel + " " + modes + " " + args + "\r\n"
 //#define RPL_INVITING(source, canal)					"341 " + source + " JOIN :" + channel + "\r\n"
+#define RPL_KICK(source, channel, target, reason)	":" + source + " KICK " + channel + " " + target + " :" + reason
 
 #endif

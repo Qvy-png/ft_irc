@@ -6,7 +6,7 @@
 #    By: dasereno <dasereno@student.42.fr>          +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2023/01/23 17:29:46 by rdel-agu          #+#    #+#              #
-#    Updated: 2023/04/08 20:48:54 by dasereno         ###   ########.fr        #
+#    Updated: 2023/04/12 18:07:56 by dasereno         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -24,7 +24,8 @@ SRC =	srcs/main.cpp \
 		srcs/ft_irc.cpp \
 		srcs/client.cpp \
 		srcs/canal.cpp \
-		srcs/canalManager.cpp
+		srcs/canalManager.cpp\
+		srcs/commandManager.cpp
 
 INCL =	includes/color.hpp\
 		includes/ft_irc.h\
@@ -32,7 +33,8 @@ INCL =	includes/color.hpp\
 		includes/client.hpp\
 		includes/canal.hpp\
 		includes/message.hpp\
-		includes/canalManager.hpp
+		includes/canalManager.hpp\
+		includes/commandManager.hpp
 		
 all: $(NAME)
 

@@ -6,7 +6,7 @@
 /*   By: dasereno <dasereno@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/03/13 15:16:33 by dasereno          #+#    #+#             */
-/*   Updated: 2023/03/14 18:33:47 by dasereno         ###   ########.fr       */
+/*   Updated: 2023/04/12 17:32:58 by dasereno         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -30,6 +30,24 @@ class Message {
 		std::string	getMessage(void) { return (_message); };
 
 		Client		&getSender(void) { return (_sender); };
+
+		bool	isClient(Client *cli ) {
+			for (std::vector<Client *>::iterator it = clients.begin(); it != clients.end(); it++) {
+				Client *tmp = (*it);
+				if (tmp->getNick() == cli->getNick())
+					return (true);
+			}
+			return (false);
+		}
+
+		bool	isClient(std::string cli ) {
+			for (std::vector<Client *>::iterator it = clients.begin(); it != clients.end(); it++) {
+				Client *tmp = (*it);
+				if (tmp->getNick() == cli)
+					return (true);
+			}
+			return (false);
+		}
 
 		Message&	operator=( const Message& ref) { 
 			if ( this == &ref )

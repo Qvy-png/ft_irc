@@ -6,7 +6,7 @@
 /*   By: dasereno <dasereno@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/01/23 17:37:21 by rdel-agu          #+#    #+#             */
-/*   Updated: 2023/04/10 17:46:57 by dasereno         ###   ########.fr       */
+/*   Updated: 2023/04/12 18:26:15 by dasereno         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -44,6 +44,7 @@
 #include "canal.hpp"
 #include "message.hpp"
 #include "canalManager.hpp"
+#include "commandManager.hpp"
 
 // data
 
@@ -53,6 +54,9 @@
 #define DATE "Mon Feb 31 25:02:33 2023"
 #define DEFAULT_NAME "pouet"
 #define TIME_LIMIT 60
+
+std::vector<std::string> split(std::string s, std::string delimiter);
+bool	str_isnum(std::string str);
 
 // macros
 

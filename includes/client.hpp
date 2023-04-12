@@ -6,7 +6,7 @@
 /*   By: dasereno <dasereno@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/02/22 15:14:42 by rdel-agu          #+#    #+#             */
-/*   Updated: 2023/04/09 17:52:59 by dasereno         ###   ########.fr       */
+/*   Updated: 2023/04/12 18:16:08 by dasereno         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -44,6 +44,13 @@ class Client {
         ~Client( );
         
         Client&     operator=( const Client& );
+
+        int	send_msg(std::string msg) {
+			int res;
+			
+			res = send(_fd, msg.c_str(), msg.length(), MSG_CONFIRM);
+			return (res);
+		}
         
         void        setFd( int );
         void        setHs( bool );

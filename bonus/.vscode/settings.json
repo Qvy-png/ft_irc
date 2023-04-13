@@ -54,6 +54,8 @@
         "thread": "cpp",
         "cinttypes": "cpp",
         "typeinfo": "cpp",
-        "semaphore": "cpp"
+        "semaphore": "cpp",
+        "map": "cpp",
+        "iostream": "cpp"
     }
 }

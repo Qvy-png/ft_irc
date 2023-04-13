@@ -6,7 +6,7 @@
 /*   By: rdel-agu <rdel-agu@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/04/11 17:58:14 by dasereno          #+#    #+#             */
-/*   Updated: 2023/04/13 17:08:02 by rdel-agu         ###   ########.fr       */
+/*   Updated: 2023/04/13 18:14:06 by rdel-agu         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -37,5 +37,5 @@ class CommandManager {
 		void	kick(std::string str, Client *cli);
 		void	oper(std::string str);
 		void	whois(std::string str, Client *cli);
-		void	feur(std::string str, Client *cli);
+		// void	feur(std::string str, Client *cli);
 };

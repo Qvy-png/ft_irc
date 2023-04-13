@@ -6,7 +6,7 @@
 /*   By: rdel-agu <rdel-agu@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/02/03 14:12:48 by rdel-agu          #+#    #+#             */
-/*   Updated: 2023/04/13 18:06:44 by rdel-agu         ###   ########.fr       */
+/*   Updated: 2023/04/13 18:23:47 by rdel-agu         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -225,6 +225,7 @@ bool isFeur(std::string &sent) {
 int	Server::_polloutHandler(Client *client) {
 					// LIMITE DE SEND DE 1024CHAR;
 	std::map<std::string, Canal *> canals = _canalManager->GetChannels();
+	int i = 0;
 
 	for (std::map<std::string, Canal *>::iterator it = canals.begin(); it != canals.end(); it++) {
 		Canal *tmp = (*it).second;
@@ -239,8 +240,12 @@ int	Server::_polloutHandler(Client *client) {
 					std::cout << "ici mec " << std::endl; 
 					client->send_msg(":" + msg->getSender().getNick() + " PRIVMSG " + tmp->getName() + " " + str + "\r\n");
 					std::cout << ":" + msg->getSender().getNick() + " PRIVMSG " + tmp->getName() + " " + str + "\r\n" << std::endl;
-					if (isFeur(str))
+					if (isFeur(str)) {
+						
 						client->send_msg(":bot PRIVMSG " + tmp->getName() + " " + "feur lol" + "\r\n");
+						if ( i == 0 )
+							msg->getSender().send_msg(":bot PRIVMSG " + tmp->getName() + " " + "feur lol" + "\r\n");
+					}
 				}
 				else {
 					std::cout << "PRIV_MSG : " << RPL_PRIVMSG(getClient(tmp->getName())->getPrefix(), client->getNick(), msg->getMessage()) << std::endl;

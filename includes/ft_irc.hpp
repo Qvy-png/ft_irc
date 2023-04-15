@@ -6,7 +6,7 @@
 /*   By: dasereno <dasereno@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/01/23 17:48:31 by rdel-agu          #+#    #+#             */
-/*   Updated: 2023/04/13 18:08:51 by dasereno         ###   ########.fr       */
+/*   Updated: 2023/04/15 19:49:23 by dasereno         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -39,6 +39,8 @@ class Server {
 		std::string						_localhost;
 		std::string 					_nick;
 		CommandManager					*_commandManager;
+		std::vector<Client *>			_ops;
+		
 
 		int	_callCommands(Client *client, CommandManager *cmd, int i);
 		int	_polloutHandler(Client *client);
@@ -64,7 +66,12 @@ class Server {
 		int				getNumOpenFds( void ) { return _num_open_fds; };
 		std::string		getLocalhost( void ) { return _localhost; };
 		struct pollfd	&getPfds(int i) { return _pfds[i]; };
-
+		void	addOp( Client *client ) {
+			_ops.push_back(client);
+		};
+		void	delOp( Client *client );
+		bool	isOp( std::string name );
+		bool	isOp( Client *client );
 		int				printErr( std::string str ) { std::cerr << REDHB << str << CRESET; return ( 1 ); }
 		
 		std::vector<Client *>	getClients(void) { return _clients; };

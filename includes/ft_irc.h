@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   ft_irc.h                                           :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: rdel-agu <rdel-agu@student.42.fr>          +#+  +:+       +#+        */
+/*   By: dasereno <dasereno@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/01/23 17:37:21 by rdel-agu          #+#    #+#             */
-/*   Updated: 2023/04/15 14:18:53 by rdel-agu         ###   ########.fr       */
+/*   Updated: 2023/04/15 20:02:10 by dasereno         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -120,9 +120,9 @@ bool	str_isnum(std::string str);
 
 #define RPL_INVITING(source, nick, channel) ("341 " + source + " " + nick + " " + channel + "\r\n")
 
-#define RPL_INVITELIST(localhost, channel, invitemask) (":" + localhost + " 346 " + channel + " " + invitemask)
+#define RPL_INVITELIST(localhost, channel, invitemask) (":" + localhost + " 346 " + channel + " " + invitemask + "\r\n")
 
-#define RPL_ENDOFINVITELIST(localhost, channel) (":" + localhost + " 347 " + channel + " :End of channel invite list")
+#define RPL_ENDOFINVITELIST(localhost, channel) (":" + localhost + " 347 " + channel + " :End of channel invite list\r\n")
 
 #define RPL_WHOREPLY(localhost, channel, user, host, nick, name) (":" + localhost + " 352 " + channel + " " + user + " " + host + " " + SERVER + " " + nick + " : 0 " + name + "\r\n")
 
@@ -150,7 +150,7 @@ bool	str_isnum(std::string str);
 
 #define ERR_TOOMANYTARGETS(localhost, target) (":" + localhost + " 407 " + target + " :<error code> recipients. <abort message>\r\n")
 
-#define ERR_NOORIGIN(localhost) (":" + localhost + " 409 :No origin specified")
+#define ERR_NOORIGIN(localhost) (":" + localhost + " 409 :No origin specified\r\n")
 
 #define ERR_NORECIPIENT(localhost) (":" + localhost + " 411 : No recipient given (<command>)\r\n")
 
@@ -202,7 +202,7 @@ bool	str_isnum(std::string str);
 
 #define ERR_UNKNOWNMODE(source, character)				"472 " + source + " " + character + " :is unknown mode char to me\r\n"
 
-#define ERR_BADCHANMASK(chan) ("476 " + chan + " :Bad Channel Mask")
+#define ERR_BADCHANMASK(chan) ("476 " + chan + " :Bad Channel Mask\r\n")
 
 #define ERR_NOPRIVILEGES(localhost) (":" + localhost + " 481 :Permission Denied- You're not an IRC operator\r\n")
 
@@ -226,6 +226,6 @@ bool	str_isnum(std::string str);
 #define RPL_ENDOFNAMES(source, channel)			"366 " + source + " " + channel + " :End of /NAMES list." + "\r\n"
 #define RPL_MODE(source, channel, modes, args)		":" + source + " MODE " + channel + " " + modes + " " + args + "\r\n"
 //#define RPL_INVITING(source, canal)					"341 " + source + " JOIN :" + channel + "\r\n"
-#define RPL_KICK(source, channel, target, reason)	":" + source + " KICK " + channel + " " + target + " :" + reason
+#define RPL_KICK(source, channel, target, reason)	":" + source + " KICK " + channel + " " + target + " :" + reason + "\r\n"
 
 #endif

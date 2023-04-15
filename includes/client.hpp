@@ -6,7 +6,7 @@
 /*   By: dasereno <dasereno@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/02/22 15:14:42 by rdel-agu          #+#    #+#             */
-/*   Updated: 2023/04/13 18:12:44 by dasereno         ###   ########.fr       */
+/*   Updated: 2023/04/15 18:34:53 by dasereno         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -66,7 +66,6 @@ class Client {
         bool        getOp( void) { return _op; };
         void        setOp( bool op ) { _op = op; };
         void        setTime( std::time_t );
-        void        setMode( std::string );
         void        setHasTime( bool );
         void        setModeI( bool val ) { _modeI = val; };
         
@@ -77,7 +76,6 @@ class Client {
         std::string getFullName( void );
         std::string getBuffer( void );
         std::time_t getTime( void );
-        std::string getMode( void );
         bool        getHasTime( void );
         bool        getModeI( void ) { return _modeI; };
 };

@@ -6,7 +6,7 @@
 /*   By: dasereno <dasereno@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/02/03 14:12:48 by rdel-agu          #+#    #+#             */
-/*   Updated: 2023/04/13 18:09:05 by dasereno         ###   ########.fr       */
+/*   Updated: 2023/04/15 19:56:08 by dasereno         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -117,6 +117,37 @@ int    Server::init( void ) {
 	return (0);
 }
 
+void	Server::delOp( Client *client ) {
+    std::vector<Client *>::iterator	it = _ops.begin();
+    for (; it != _ops.end(); it++) {
+        Client *tmp = (*it);
+        if (tmp != NULL && tmp->getNick() == client->getNick()) {
+            _ops.erase(it);
+            break ;
+        }
+    }
+}
+
+bool	Server::isOp( std::string name ) { 
+    std::vector<Client *>::iterator	it = _ops.begin();
+    for (; it != _ops.end(); it++) {
+        Client *tmp = (*it);
+        if (tmp != NULL && tmp->getNick() == name)
+            return true;
+    }
+    return false;
+}
+
+bool	Server::isOp( Client *client ) {
+    std::vector<Client *>::iterator	it = _ops.begin();
+    for (; it != _ops.end(); it++) {
+        Client *tmp = (*it);
+        if (tmp != NULL && tmp->getNick() == client->getNick())
+            return true;
+    }
+    return false;
+}
+
 int	Server::_callCommands(Client *client, CommandManager *cmd, int i) {
 	if ( i <= static_cast<int>( getClientSize() ) && !client->getBuffer().empty() ) {
 					
@@ -169,7 +200,7 @@ int	Server::_callCommands(Client *client, CommandManager *cmd, int i) {
 			else if (tmp == "KICK")
 				cmd->kick(tmpRest, client);
 			else if (tmp == "OPER")
-				cmd->oper(tmpRest);
+				cmd->oper(tmpRest, client);
 			else if (tmp == "WHOIS")
 				cmd->whois(tmpRest, client);
 			else if (tmp == "CAP")

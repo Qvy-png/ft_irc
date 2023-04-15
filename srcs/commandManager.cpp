@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   commandManager.cpp                                 :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: dasereno <dasereno@student.42.fr>          +#+  +:+       +#+        */
+/*   By: rdel-agu <rdel-agu@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/04/12 16:24:36 by dasereno          #+#    #+#             */
-/*   Updated: 2023/04/12 18:42:39 by dasereno         ###   ########.fr       */
+/*   Updated: 2023/04/15 15:12:25 by rdel-agu         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -17,17 +17,16 @@ void	CommandManager::pass(std::string str, Client *cli) {
 }
 
 void	CommandManager::nick(std::string str, Client *cli) {
+
 	bool NickIsFree;
 
 	NickIsFree = true;
-	if (cli->getNick().empty()) {
-		for (int j = 0; j < _server->getNumOpenFds(); j++) {
+	for (int j = 0; j < _server->getNumOpenFds(); j++) {
+		
+		if ( _server->getClient(j)->getNick() == str ) {
 			
-			if ( _server->getClient(j)->getNick() == str ) {
-				
-				cli->send_msg(ERR_NICKNAMEINUSE( _server->getLocalhost(), str));
-				NickIsFree = false;
-			}
+			cli->send_msg(ERR_NICKNAMEINUSE( _server->getLocalhost(), str));
+			NickIsFree = false;
 		}
 	}
 	if ( NickIsFree == true ) {
@@ -35,7 +34,7 @@ void	CommandManager::nick(std::string str, Client *cli) {
 		std::string name = cli->getNick() + "!" + cli->getFullName() + "@" + cli->getHost();
 		
 		cli->setNick(str);
-		cli->send_msg(NICK( name, str));
+		cli->send_msg(NICK( name, str ));
 	}
 }
 

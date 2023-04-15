@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   ft_irc.h                                           :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: dasereno <dasereno@student.42.fr>          +#+  +:+       +#+        */
+/*   By: rdel-agu <rdel-agu@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/01/23 17:37:21 by rdel-agu          #+#    #+#             */
-/*   Updated: 2023/04/12 18:26:15 by dasereno         ###   ########.fr       */
+/*   Updated: 2023/04/15 14:18:53 by rdel-agu         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -64,7 +64,7 @@ bool	str_isnum(std::string str);
 
 #define RPL_WELCOME(localhost, nick) (":" + localhost + " 001 " + nick + " :Welcome to the Internet Relay Network " + localhost + "\r\n")
 
-#define RPL_YOURHOST(localhost) (":" + localhost + " 002 :Your host is " + SERVER + ", running version" + VERSION + "\r\n")
+#define RPL_YOURHOST(localhost) (":" + localhost + " 002 :Your host is " + SERVER + ", running version " + VERSION + "\r\n")
 
 #define RPL_CREATED(localhost) (":" + localhost + " 003 :This server was created " DATE "\r\n")
 

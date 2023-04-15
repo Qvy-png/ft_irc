@@ -6,7 +6,7 @@
 /*   By: dasereno <dasereno@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/02/03 14:12:48 by rdel-agu          #+#    #+#             */
-/*   Updated: 2023/04/12 19:09:23 by dasereno         ###   ########.fr       */
+/*   Updated: 2023/04/13 18:09:05 by dasereno         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -48,6 +48,19 @@ Client		*Server::getClient(std::string name) {
 		}
 	}
 	return NULL;
+}
+
+int			Server::getClientIndex(Client *client) {
+	int	i = 0;
+
+	for (std::vector<Client *>::iterator it = _clients.begin(); it != _clients.end(); it++) {
+		Client *tmp = (*it);
+		if (client->getNick() == tmp->getNick()) {
+			return i;
+		}
+		i++;
+	}
+	return -1;
 }
 
 bool	Server::isClient(Client *cli ) {
@@ -150,7 +163,6 @@ int	Server::_callCommands(Client *client, CommandManager *cmd, int i) {
 				cmd->part(tmpRest, client);
 			else if (tmp == "QUIT") {
 				cmd->quit(i);
-				_num_open_fds--;
 				return (1);
 			} else if (tmp == "PRIVMSG")
 				cmd->privmsg(tmpRest, client);

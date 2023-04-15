@@ -6,7 +6,7 @@
 /*   By: dasereno <dasereno@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/01/23 17:48:31 by rdel-agu          #+#    #+#             */
-/*   Updated: 2023/04/12 19:09:31 by dasereno         ###   ########.fr       */
+/*   Updated: 2023/04/13 18:08:51 by dasereno         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -60,6 +60,7 @@ class Server {
 		std::string 	getPassword( void ) const;
 		Client			*getClient(int i) { return _clients[i]; };
 		Client			*getClient(std::string name);
+		int				getClientIndex(Client *client);
 		int				getNumOpenFds( void ) { return _num_open_fds; };
 		std::string		getLocalhost( void ) { return _localhost; };
 		struct pollfd	&getPfds(int i) { return _pfds[i]; };
@@ -72,6 +73,7 @@ class Server {
 		size_t			getClientSize(void) { return _clients.size(); };
 		bool			isClient(Client *cli );
 		bool			isClient(std::string cli );
+		void			setNumOpenFds( int fds ) { _num_open_fds = fds; };
 
 		int	send_msg(std::string msg, int sfd) {
 			int res;

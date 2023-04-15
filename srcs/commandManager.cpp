@@ -6,7 +6,7 @@
 /*   By: dasereno <dasereno@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/04/12 16:24:36 by dasereno          #+#    #+#             */
-/*   Updated: 2023/04/12 18:42:39 by dasereno         ###   ########.fr       */
+/*   Updated: 2023/04/15 18:30:37 by dasereno         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -55,6 +55,11 @@ void	CommandManager::user(std::string str, Client *cli) {
 	std::string			splitTmp;
 	int					j = 0;
 
+	if (cli->getPass().empty()) {
+		cli->send_msg(ERR_PASSWDMISMATCH( _server->getLocalhost(), cli->getNick() ) );
+		quit(cli);
+		return ;
+	}
 	while ( getline( userSplitter, splitTmp, ' ') ) {
 		
 		if ( j == 0 )
@@ -184,11 +189,7 @@ void	CommandManager::mode(std::string str, Client *cli) {
 
 	if (args.size() < 2)
 	{
-		// NOT ENOUGH ARGS
-		return ;
-	}
-	if (args[1][0] != '+' && args[1][0] != '-') {
-		// BAD ARGS
+		cli->send_msg(ERR_NEEDMOREPARAMS(cli->getNick(), "MODE"));
 		return ;
 	}
 	if (args[0][0] == '#' || args[0][0] == '&') { // CHANNEL MODE
@@ -199,7 +200,7 @@ void	CommandManager::mode(std::string str, Client *cli) {
 			return ;
 		}
 		if (!canal->hasClient(cli)) {
-			// send_msg
+			cli->send_msg(ERR_NOTONCHANNEL(cli->getNick(), args[0]));
 		}
 		bool block = false;
 		bool sign = false; // true = '+' / false = '-'
@@ -366,24 +367,75 @@ void	CommandManager::mode(std::string str, Client *cli) {
 		}
 		// }
 	} else { // USER MODE
-		// if (args[2][0] == '+') { // ADD MODES
-		// 	for (int i = 1; args[2][i]; i++) {
-		// 		if (user_modes.find(args[2][i], 0) == chan_modes.npos)
-		// 		{
-		// 			// BAD MODE
-		// 			return ;
-		// 		}
-		// 	}
-		// } else if (args[2][0] == '-') { // REMOVE MODES
-
-		// }
+			for (int j = 0; args[1][j]; j++) {
+			std::cout << "ICI" << std::endl;
+			if (args[1][j] == '+') {
+				sign = true;
+				continue ;
+			} else if (args[1][j] == '-') {
+				sign = false;
+				continue ;
+			}
+			if (sign) { // '+'
+				switch (args[1][j])
+				{
+				case 'i' :
+					if (user->getModeI() || !canal->isOp(cli)) {
+						std::cout << canal->getOp().getNick() << std::endl;
+						std::cout << cli->getNick() << std::endl;
+						std::cout << "yo c ici ca quitte" << std::endl;
+						std::cout << canal->isOp(cli) << std::endl;
+						break ;
+					}
+					user->setModeI(true);
+					cli->send_msg(RPL_MODE(cli->getPrefix(), canal->getName(), "+i", ""));
+					break ;
+				default:
+					cli->send_msg(ERR_UNKNOWNMODE(cli->getNick(), args[1][j]));
+					return ;
+				}
+			} else {
+				switch (args[1][j])
+				{
+				case 'i' :
+					if (!canal->getModeI() || !canal->isOp(cli))
+						break ;
+					canal->setModeI(false);
+					canal->resetInvited();
+					cli->send_msg(RPL_MODE(cli->getPrefix(), canal->getName(), "-i", ""));
+					break ;
+				default:
+					cli->send_msg(ERR_UNKNOWNMODE(cli->getNick(), args[1][j]));
+					return ;
+				}
+			}
+			if (block)
+					return ;
+		}
 	}
 }
 
 void	CommandManager::topic(std::string str, Client *cli) {
+	if (str.empty()) {
+		cli->send_msg(ERR_NEEDMOREPARAMS(cli->getNick(), "TOPIC"));
+		return ;
+	}
 	CanalManager *canalManager = _server->getCanalManager();
 	if (str.find(":") == str.npos) { // TODO
-		// get topic
+		std::string channel = str.substr(0, str.find(":") - 1);
+		Canal *canal = canalManager->GetChannel(channel);
+		if (channel.size() == 0 || (channel[0] != '#' && channel[0] != '&') || !canal) {
+			cli->send_msg(ERR_NOSUCHCHANNEL(cli->getNick(), channel));
+			return ;
+		}
+		if (!canal->hasClient(cli->getNick())) {
+			cli->send_msg(ERR_NOTONCHANNEL(cli->getNick(), channel));
+			return ;
+		}
+		if (canal->getTopic().size() > 0)
+			cli->send_msg(RPL_TOPIC(cli->getNick(), channel, canal->getTopic()));
+		else
+			cli->send_msg(RPL_NOTOPIC(cli->getNick(), channel));
 	} else if (str.find(":") == str.size() || str.find(":") + 1 == str.size()) {
 		// clear topic
 		std::string channel = str.substr(0, str.find(":") - 1);
@@ -428,12 +480,24 @@ void	CommandManager::topic(std::string str, Client *cli) {
 
 void	CommandManager::part(std::string str, Client *cli) { // TO DO: ALL ERRORS
 	std::cout << "Client #" << cli->getNick() << " PART channel "<< str << std::endl;
+	std::cout << str << std::endl;
+	if (str.empty())
+	{
+		cli->send_msg(ERR_NEEDMOREPARAMS(cli->getNick(), "PART"));
+		return ;
+	}
 	std::string args = str.substr(str.find(':') + 1, str.size());
-	std::vector<std::string> channels = split(args, " ");
+	std::vector<std::string> channels = split(args, ",");
 	CanalManager	*canalManager = _server->getCanalManager();
 	for (std::vector<std::string>::iterator it = channels.begin(); it != channels.end(); it++) {
 		std::string canalName = (*it);
+		std::cout << canalName << std::endl;
 		Canal *canal = canalManager->GetChannel(canalName);
+		if (!canal || (canal->getName()[0] != '#' && canal->getName()[0] != '&')) {
+			cli->send_msg(ERR_NOSUCHCHANNEL(cli->getNick(), canalName));
+		} else if (!canal->hasClient(cli)) {
+			cli->send_msg(ERR_NOTONCHANNEL(cli->getNick(), canalName));
+		}
 		if (canal && canal->hasClient(cli) && canal->getName()[0] == '#')
 		{
 			canal->broadcast(RPL_PART(cli->getPrefix(), canal->getName()));
@@ -450,6 +514,20 @@ void	CommandManager::quit(int i) { // ERROR HANDLING???
 	{
 		_server->getPfds(j) = _server->getPfds(j + 1);
 	}
+	_server->setNumOpenFds(_server->getNumOpenFds() - 1);
+}
+
+void	CommandManager::quit(Client *cli) { // ERROR HANDLING???
+	int	i = _server->getClientIndex(cli) + 1;
+	std::cout << "cient #" << i << " quit because bad pass" << std::endl;
+	close( _server->getPfds(i).fd );
+	_server->eraseClient(i - 1);
+	// client.erase( client.begin() + i - 1 );
+	for (int j = i; j + 1 <= _server->getNumOpenFds() + 1; j++)
+	{
+		_server->getPfds(j) = _server->getPfds(j + 1);
+	}
+	_server->setNumOpenFds(_server->getNumOpenFds() - 1);
 }
 
 void	CommandManager::_privmsgClient(std::string str, CanalManager *canalManager, Client *cli)

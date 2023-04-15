@@ -6,7 +6,7 @@
 /*   By: dasereno <dasereno@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/04/11 17:58:14 by dasereno          #+#    #+#             */
-/*   Updated: 2023/04/12 18:42:51 by dasereno         ###   ########.fr       */
+/*   Updated: 2023/04/13 18:00:15 by dasereno         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -33,6 +33,7 @@ class CommandManager {
 		void	topic(std::string str, Client *cli);
 		void	part(std::string str, Client *cli);
 		void	quit(int i);
+		void	quit(Client *cli);
 		void	privmsg(std::string str, Client *cli);
 		void	kick(std::string str, Client *cli);
 		void	oper(std::string str);

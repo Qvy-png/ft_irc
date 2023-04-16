@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   commandManager.hpp                                 :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: dasereno <dasereno@student.42.fr>          +#+  +:+       +#+        */
+/*   By: rdel-agu <rdel-agu@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/04/11 17:58:14 by dasereno          #+#    #+#             */
-/*   Updated: 2023/04/15 19:45:55 by dasereno         ###   ########.fr       */
+/*   Updated: 2023/04/16 18:29:32 by rdel-agu         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -18,7 +18,8 @@ class Server;
 class CommandManager {
 	private:
 		Server					*_server;
-		void	_privmsgClient(std::string str, CanalManager *canalManager, Client *cli);
+		void	_privmsgClient(std::string msg, CanalManager *canalManager, Client *cli, std::string receiver);
+		void	_noticeClient(std::string msg, CanalManager *canalManager, Client *cli, std::string receiver);
 	public:
 		CommandManager	(Server *server): _server(server) {};
 		~CommandManager (void) {};
@@ -37,5 +38,6 @@ class CommandManager {
 		void	privmsg(std::string str, Client *cli);
 		void	kick(std::string str, Client *cli);
 		void	oper(std::string str, Client *cli);
+		void	notice(std::string str, Client *cli);
 		void	whois(std::string str, Client *cli);
 };

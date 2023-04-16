@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   canalManager.cpp                                   :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: dasereno <dasereno@student.42.fr>          +#+  +:+       +#+        */
+/*   By: rdel-agu <rdel-agu@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/03/15 17:17:05 by dasereno          #+#    #+#             */
-/*   Updated: 2023/03/29 17:36:57 by dasereno         ###   ########.fr       */
+/*   Updated: 2023/04/16 18:54:05 by rdel-agu         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -48,6 +48,7 @@ void CanalManager::DeleteChannel(Canal *channel) {
 }
 
 void CanalManager::DeleteAllChannels() {
+    std::cout << "destructo for canals called" << std::endl;
     for (std::map<std::string, Canal *>::iterator it = _channels.begin(); it != _channels.end(); it++) {
         if (!it->second) continue;
         delete it->second;

@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   client.hpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: dasereno <dasereno@student.42.fr>          +#+  +:+       +#+        */
+/*   By: rdel-agu <rdel-agu@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/02/22 15:14:42 by rdel-agu          #+#    #+#             */
-/*   Updated: 2023/04/12 18:16:08 by dasereno         ###   ########.fr       */
+/*   Updated: 2023/04/16 19:00:28 by rdel-agu         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -34,7 +34,7 @@ class Client {
         bool                        _op;
         bool                        _hasTime;
         std::time_t                 _time;
-        std::string                 _mode;
+        int                         _modeI;
         
 
     public:
@@ -66,8 +66,8 @@ class Client {
         bool        getOp( void) { return _op; };
         void        setOp( bool op ) { _op = op; };
         void        setTime( std::time_t );
-        void        setMode( std::string );
         void        setHasTime( bool );
+        void        setModeI( bool val ) { _modeI = val; };
         
         std::string getPrefix( void ) { return _nick + (_fullName.empty() ? "" : "!" + _fullName) + (_host.empty() ? "" : "@" + _host);};
         std::string getPass( void );
@@ -76,8 +76,8 @@ class Client {
         std::string getFullName( void );
         std::string getBuffer( void );
         std::time_t getTime( void );
-        std::string getMode( void );
         bool        getHasTime( void );
+        bool        getModeI( void ) { return _modeI; };
 };
 
 #endif

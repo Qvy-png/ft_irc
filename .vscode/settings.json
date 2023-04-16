@@ -69,6 +69,17 @@
 		"*.tcc": "cpp",
 		"functional": "cpp",
 		"numbers": "cpp",
-		"utility": "cpp"
+		"utility": "cpp",
+		"bit": "cpp",
+		"iterator": "cpp",
+		"memory_resource": "cpp",
+		"numeric": "cpp",
+		"random": "cpp",
+		"ranges": "cpp",
+		"span": "cpp",
+		"stop_token": "cpp",
+		"thread": "cpp",
+		"cinttypes": "cpp",
+		"semaphore": "cpp"
 	}
 }

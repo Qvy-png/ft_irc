@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   ft_irc.hpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: dasereno <dasereno@student.42.fr>          +#+  +:+       +#+        */
+/*   By: rdel-agu <rdel-agu@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/01/23 17:48:31 by rdel-agu          #+#    #+#             */
-/*   Updated: 2023/04/12 19:09:31 by dasereno         ###   ########.fr       */
+/*   Updated: 2023/04/16 18:52:07 by rdel-agu         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -21,6 +21,7 @@
 class CanalManager;
 class CommandManager;
 class Client;
+
 
 class Server {
 
@@ -39,6 +40,8 @@ class Server {
 		std::string						_localhost;
 		std::string 					_nick;
 		CommandManager					*_commandManager;
+		std::vector<Client *>			_ops;
+		
 
 		int	_callCommands(Client *client, CommandManager *cmd, int i);
 		int	_polloutHandler(Client *client);
@@ -54,16 +57,24 @@ class Server {
 		void			setPort( int );
 		void			setPassword( std::string );
 		
+		static void signal_callback_handler( int signum );
+		
 		CanalManager	*getCanalManager( void ) { return _canalManager; };
 		CommandManager	*getCommandManager( void ) { return _commandManager; };
 		int				getPort( void ) const;
 		std::string 	getPassword( void ) const;
 		Client			*getClient(int i) { return _clients[i]; };
 		Client			*getClient(std::string name);
+		int				getClientIndex(Client *client);
 		int				getNumOpenFds( void ) { return _num_open_fds; };
 		std::string		getLocalhost( void ) { return _localhost; };
 		struct pollfd	&getPfds(int i) { return _pfds[i]; };
-
+		void	addOp( Client *client ) {
+			_ops.push_back(client);
+		};
+		void	delOp( Client *client );
+		bool	isOp( std::string name );
+		bool	isOp( Client *client );
 		int				printErr( std::string str ) { std::cerr << REDHB << str << CRESET; return ( 1 ); }
 		
 		std::vector<Client *>	getClients(void) { return _clients; };
@@ -72,6 +83,7 @@ class Server {
 		size_t			getClientSize(void) { return _clients.size(); };
 		bool			isClient(Client *cli );
 		bool			isClient(std::string cli );
+		void			setNumOpenFds( int fds ) { _num_open_fds = fds; };
 
 		int	send_msg(std::string msg, int sfd) {
 			int res;

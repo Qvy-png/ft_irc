@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   ft_irc.hpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: dasereno <dasereno@student.42.fr>          +#+  +:+       +#+        */
+/*   By: rdel-agu <rdel-agu@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/01/23 17:48:31 by rdel-agu          #+#    #+#             */
-/*   Updated: 2023/04/15 19:49:23 by dasereno         ###   ########.fr       */
+/*   Updated: 2023/04/16 18:52:07 by rdel-agu         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -21,6 +21,7 @@
 class CanalManager;
 class CommandManager;
 class Client;
+
 
 class Server {
 
@@ -55,6 +56,8 @@ class Server {
     
 		void			setPort( int );
 		void			setPassword( std::string );
+		
+		static void signal_callback_handler( int signum );
 		
 		CanalManager	*getCanalManager( void ) { return _canalManager; };
 		CommandManager	*getCommandManager( void ) { return _commandManager; };

@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   commandManager.cpp                                 :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: dasereno <dasereno@student.42.fr>          +#+  +:+       +#+        */
+/*   By: rdel-agu <rdel-agu@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/04/12 16:24:36 by dasereno          #+#    #+#             */
-/*   Updated: 2023/04/15 20:11:40 by dasereno         ###   ########.fr       */
+/*   Updated: 2023/04/16 18:49:48 by rdel-agu         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -23,9 +23,12 @@ void	CommandManager::pass(std::string str, Client *cli) {
 void	CommandManager::nick(std::string str, Client *cli) {
 
 	bool NickIsFree;
-
 	if (str.empty()) {
 		cli->send_msg(ERR_NONICKNAMEGIVEN(_server->getLocalhost()));
+		return ;
+	}
+	if (!isValidNickname(str)) {
+		cli->send_msg(ERR_ERRONEUSNICKNAME(_server->getLocalhost(), str));
 		return ;
 	}
 	NickIsFree = true;
@@ -99,6 +102,10 @@ void	CommandManager::join(std::string str, Client *cli) {
 	CanalManager *canalManager = _server->getCanalManager();
 	Canal *canal = canalManager->GetChannel(name);
 	if (canal == NULL) {
+		if (!isValidChannelName(str)) {
+			cli->send_msg(ERR_BADCHANMASK(str));
+			return ;
+		}
 		canal = canalManager->CreateChannel(str, cli);
 		std::cout << "chanoper is : " << canal->getOp().getNick() << std::endl;
 		std::string users ("");
@@ -520,7 +527,7 @@ void	CommandManager::topic(std::string str, Client *cli) {
 	}
 }
 
-void	CommandManager::part(std::string str, Client *cli) { // TO DO: ALL ERRORS
+void	CommandManager::part(std::string str, Client *cli) { // TO DO: ALL ERRORS // HANDLE MULTIPLE PART	
 	std::cout << "Client #" << cli->getNick() << " PART channel "<< str << std::endl;
 	std::cout << str << std::endl;
 	if (str.empty())
@@ -572,15 +579,21 @@ void	CommandManager::quit(Client *cli) { // ERROR HANDLING???
 	_server->setNumOpenFds(_server->getNumOpenFds() - 1);
 }
 
-void	CommandManager::_privmsgClient(std::string str, CanalManager *canalManager, Client *cli)
+void	CommandManager::_privmsgClient(std::string msg, CanalManager *canalManager, Client *cli, std::string receiver)
 {
-	std::string receiver = str.substr(0, str.find(' '));
+	if (receiver.empty()) {
+		cli->send_msg(ERR_NEEDMOREPARAMS(cli->getNick(), "PRIVMSG"));
+		return ;
+	}
+	// std::string str = str.substr(0, str.find(' '));
 	if (!_server->isClient(receiver)) {
 		cli->send_msg(ERR_NOSUCHNICK(cli->getNick(), receiver));
 		return ;
 	}
-	std::string msg = str.substr(str.find(':'), str.size());
-	Message *newMsg = new Message (msg, *cli);
+	// std::string msg = str.substr(str.find(':'), str.size());
+	if (!validateMessage(msg))
+		return ;
+	Message *newMsg = new Message (RPL_PRIVMSG(cli->getPrefix(), cli->getNick(), msg), *cli);
 	Canal *newCanal = canalManager->CreateChannel(cli->getNick(), cli);
 	newCanal->pushClient(_server->getClient(receiver));
 	newCanal->waitingMessages.push_back(newMsg);
@@ -589,31 +602,44 @@ void	CommandManager::_privmsgClient(std::string str, CanalManager *canalManager,
 }
 
 void	CommandManager::privmsg(std::string str, Client *cli) {
+	if (str.find(':') == str.npos || str.find(' ') == str.npos || str.empty()) {
+		cli->send_msg(ERR_NEEDMOREPARAMS(cli->getNick(), "PRIVMSG"));
+		return ;
+	}
 	std::string channel = str.substr(0, str.find(' '));
-	CanalManager	*canalManager = _server->getCanalManager();
-	Canal	*canal = canalManager->GetChannel(channel);
-	std::cout << "channel = " << channel << std::endl;
-	if (channel[0] == '#' && !canal) {
-		cli->send_msg(ERR_NOSUCHCHANNEL(cli->getNick(), channel));
-		return ;
+	std::cout << "Channel(s) : " << channel << std::endl;
+	std::vector<std::string> canals = split (channel, ",");
+	for (std::vector<std::string>::iterator it = canals.begin(); it != canals.end(); it++) {
+		std::string tmp = (*it);
+		CanalManager	*canalManager = _server->getCanalManager();
+		Canal	*canal = canalManager->GetChannel(tmp);
+		std::cout << "channel = " << tmp << std::endl;
+		std::string msg = str.substr(str.find(':'), str.size());
+		if (tmp[0] == '#' && !canal) {
+			cli->send_msg(ERR_NOSUCHCHANNEL(cli->getNick(), tmp));
+			continue ;
+		}
+		if (!canal || (canal && tmp[0] != '#') || tmp[0] != '#') {
+			_privmsgClient(msg, canalManager, cli, tmp);
+			continue ;
+		}
+		if (!canal->hasClient(cli))
+			continue ;
+		if (canal->getModeM() && !canal->isVoiced(cli)) {
+			cli->send_msg(ERR_CANNOTSENDTOCHAN(cli->getNick(), canal->getName()));
+			continue ;
+		}
+		if (!validateMessage(msg))
+			return ;
+		Message *newMsg = new Message (":" + cli->getNick() + " PRIVMSG " + tmp + " " + msg+ "\r\n", *cli);
+		canal->waitingMessages.push_back(newMsg);
+		for (std::vector<Client *>::iterator it = canal->clients.begin(); it != canal->clients.end(); it++) {
+			Client *cli = (*it);
+			std::cout << "->" + cli->getNick() << std::endl;
+		}
+		(*canal->waitingMessages.rbegin())->clients = canal->clients;
+		
 	}
-	if (!canal || (canal && channel[0] != '#') || channel[0] != '#') {
-		return (_privmsgClient(str, canalManager, cli));
-	}
-	if (!canal->hasClient(cli))
-		return ;
-	if (canal->getModeM() && !canal->isVoiced(cli)) {
-		cli->send_msg(ERR_CANNOTSENDTOCHAN(cli->getNick(), canal->getName()));
-		return ;
-	}
-	std::string msg = str.substr(str.find(':'), str.size());
-	Message *newMsg = new Message (msg, *cli);
-	canal->waitingMessages.push_back(newMsg);
-	for (std::vector<Client *>::iterator it = canal->clients.begin(); it != canal->clients.end(); it++) {
-		Client *cli = (*it);
-		std::cout << "->" + cli->getNick() << std::endl;
-	}
-	(*canal->waitingMessages.rbegin())->clients = canal->clients; 
 	std::cout << "Client :" << cli->getNick() << " send a message." << std::endl;
 }
 
@@ -690,6 +716,61 @@ void	CommandManager::oper(std::string str, Client *cli) {
 		cli->send_msg(ERR_PASSWDMISMATCH( _server->getLocalhost(), cli->getNick()));
 		return ;
 	}
+}
+void	CommandManager::_noticeClient(std::string msg, CanalManager *canalManager, Client *cli, std::string receiver)
+{
+	if (receiver.empty()) {
+		return ;
+	}
+	// std::string str = str.substr(0, str.find(' '));
+	if (!_server->isClient(receiver)) {
+		return ;
+	}
+	// std::string msg = str.substr(str.find(':'), str.size());
+	Message *newMsg = new Message (NOTICE(cli->getPrefix(), cli->getNick(), msg), *cli);
+	Canal *newCanal = canalManager->CreateChannel(cli->getNick(), cli);
+	newCanal->pushClient(_server->getClient(receiver));
+	newCanal->waitingMessages.push_back(newMsg);
+	(*newCanal->waitingMessages.rbegin())->clients = newCanal->clients; 
+	std::cout << "Client :" << cli->getNick() << " send a message prive." << std::endl;
+}
+
+void	CommandManager::notice(std::string str, Client *cli) {
+	if (str.find(':') == str.npos || str.find(' ') == str.npos || str.empty()) {
+		cli->send_msg(ERR_NEEDMOREPARAMS(cli->getNick(), "NOTICE"));
+		return ;
+	}
+	std::string channel = str.substr(0, str.find(' '));
+	std::cout << "Channel(s) : " << channel << std::endl;
+	std::vector<std::string> canals = split (channel, ",");
+	for (std::vector<std::string>::iterator it = canals.begin(); it != canals.end(); it++) {
+		std::string tmp = (*it);
+		CanalManager	*canalManager = _server->getCanalManager();
+		Canal	*canal = canalManager->GetChannel(tmp);
+		std::cout << "channel = " << tmp << std::endl;
+		std::string msg = str.substr(str.find(':'), str.size());
+		if (tmp[0] == '#' && !canal) {
+			continue ;
+		}
+		if (!canal || (canal && tmp[0] != '#') || tmp[0] != '#') {
+			_noticeClient(msg, canalManager, cli, tmp);
+			continue ;
+		}
+		if (!canal->hasClient(cli))
+			continue ;
+		if (canal->getModeM() && !canal->isVoiced(cli)) {
+			continue ;
+		}
+		Message *newMsg = new Message (":" + cli->getNick() + " NOTICE " + tmp + " " + msg+ "\r\n", *cli);
+		canal->waitingMessages.push_back(newMsg);
+		for (std::vector<Client *>::iterator it = canal->clients.begin(); it != canal->clients.end(); it++) {
+			Client *cli = (*it);
+			std::cout << "->" + cli->getNick() << std::endl;
+		}
+		(*canal->waitingMessages.rbegin())->clients = canal->clients; 
+		
+	}
+	std::cout << "Client :" << cli->getNick() << " send a message." << std::endl;
 }
 
 void	CommandManager::whois(std::string str, Client *cli) {

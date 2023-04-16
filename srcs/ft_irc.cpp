@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   ft_irc.cpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: dasereno <dasereno@student.42.fr>          +#+  +:+       +#+        */
+/*   By: rdel-agu <rdel-agu@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/02/03 14:12:48 by rdel-agu          #+#    #+#             */
-/*   Updated: 2023/04/15 19:56:08 by dasereno         ###   ########.fr       */
+/*   Updated: 2023/04/16 18:44:52 by rdel-agu         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -22,7 +22,19 @@ Server::Server( int port, std::string password ) : _num_open_fds(0), _addrlen(si
 
 Server::Server( const Server& ref ) { *this = ref; }
 
-Server::~Server( void ) { return ;}
+Server::~Server( void ) {
+	std::cout << "bjr le amis je QUITEE" << std::endl;
+	// _clients.clear();
+    for (std::vector<Client *>::iterator it = _clients.begin(); it != _clients.end(); it++) {
+        delete *it;
+        *it = NULL;
+    }
+	_clients.clear();
+	delete _canalManager;
+	delete _commandManager;
+	_ops.clear();
+	return ;
+}
 
 Server& Server::operator=( const Server& ref ) {
 
@@ -30,6 +42,17 @@ Server& Server::operator=( const Server& ref ) {
         return ( *this );
     *this = ref;
     return ( *this );
+}
+
+void Server::signal_callback_handler( int signum ) {
+	std::cout << GRN " \n Bye bye!" CRESET << std::endl;
+	if ( signum == SIGINT ) {
+		delete server;
+		exit (0);
+		// Server~Server();	
+		// for (std::vector<Client*>::iterator it = _clients.begin(); it != _clients.end(); ++it) {
+      		// delete (*it);
+	}
 }
 
 void    Server::setPort( int port ) { _port = port; }
@@ -97,8 +120,10 @@ int    Server::init( void ) {
 	_server_address.sin6_flowinfo = 0;
 	_server_address.sin6_scope_id = 0; 
 	int	n = 1;
-	if (setsockopt(_server_socket, SOL_SOCKET, SO_REUSEADDR, &n, sizeof(int)) < 0)
+	if (setsockopt(_server_socket, SOL_SOCKET, SO_REUSEADDR | SO_REUSEPORT, &n, sizeof(int)) < 0)
     	return ( printErr( "Error option in socket" ) );
+	if (fcntl(_server_socket, F_SETFL, O_NONBLOCK))
+		return ( printErr( "fcntl error") );
 	// BINDING SOCKET AND LISTENING TO SOCKET CHECK
 	if ( bind(_server_socket, ( struct sockaddr* ) &_server_address, sizeof( _server_address ) ) < 0) 
 		return ( printErr( "Error binding socket" ) );
@@ -199,6 +224,8 @@ int	Server::_callCommands(Client *client, CommandManager *cmd, int i) {
 				cmd->privmsg(tmpRest, client);
 			else if (tmp == "KICK")
 				cmd->kick(tmpRest, client);
+			else if (tmp == "NOTICE")
+				cmd->notice(tmpRest, client);
 			else if (tmp == "OPER")
 				cmd->oper(tmpRest, client);
 			else if (tmp == "WHOIS")
@@ -257,18 +284,19 @@ int	Server::_polloutHandler(Client *client) {
 			Message *msg = (*it_msg);
 			if (msg->isClient(client) && msg->getSender().getNick() != client->getNick()) {
 				std::cout << "msg = " << msg->getMessage() << std::endl;
-				if (tmp->getName()[0] == '#') {
-					std::cout << "ici mec " << std::endl; 
-					if (tmp->isOp(msg->getSender().getNick()))
-						client->send_msg(":" + msg->getSender().getNick() + " PRIVMSG " + tmp->getName() + " " + msg->getMessage() + "\r\n");
-					else
-						client->send_msg(":" + msg->getSender().getNick() + " PRIVMSG " + tmp->getName() + " " + msg->getMessage() + "\r\n");
-					std::cout << ":" + msg->getSender().getNick() + " PRIVMSG " + tmp->getName() + " " + msg->getMessage() + "\r\n" << std::endl;
-				}
-				else {
-					std::cout << "PRIV_MSG : " << RPL_PRIVMSG(getClient(tmp->getName())->getPrefix(), client->getNick(), msg->getMessage()) << std::endl;
-					client->send_msg(RPL_PRIVMSG(getClient(tmp->getName())->getPrefix(), client->getNick(), msg->getMessage()));
-				}
+				// if (tmp->getName()[0] == '#') {
+					// std::cout << "ici mec " << std::endl; 
+					client->send_msg(msg->getMessage());
+					// if (tmp->isOp(msg->getSender().getNick()))
+					// 	client->send_msg(":" + msg->getSender().getNick() + " PRIVMSG " + tmp->getName() + " " + msg->getMessage() + "\r\n");
+					// else
+					// 	client->send_msg(":" + msg->getSender().getNick() + " PRIVMSG " + tmp->getName() + " " + msg->getMessage() + "\r\n");
+					// std::cout << ":" + msg->getSender().getNick() + " PRIVMSG " + tmp->getName() + " " + msg->getMessage() + "\r\n" << std::endl;
+				// }
+				// else {
+				// 	std::cout << "PRIV_MSG : " << RPL_PRIVMSG(getClient(tmp->getName())->getPrefix(), client->getNick(), msg->getMessage()) << std::endl;
+				// 	client->send_msg(RPL_PRIVMSG(getClient(tmp->getName())->getPrefix(), client->getNick(), msg->getMessage()));
+				// }
 				//std::cout << "USER JOIN : " << client->getFullName() << " et " << client->getHost() << std::endl; 
 				for (std::vector<Client *>::iterator cli_it = msg->clients.begin(); cli_it != msg->clients.end(); cli_it++) {
 					Client *cli = (*cli_it);
@@ -288,13 +316,14 @@ int	Server::_polloutHandler(Client *client) {
 }
 
 int	Server::start( void ) {
-	bool quit = true;
 	CommandManager	*cmd = getCommandManager();
 
 	while ( quit ) {
 		
-		// signal(SIGINT, signal_callback_handler);
+		signal(SIGINT, Server::signal_callback_handler);
 
+		if (!quit)
+			std::cout << "JE DOIT QUITTER" << std::endl;
 		int poll_count = poll(_pfds, _num_open_fds + 1, 10);
 
 		if (poll_count == -1)
@@ -330,7 +359,7 @@ int	Server::start( void ) {
 				}
 			}
 			// _pfds[i].events = POLLIN | POLLOUT; 
-			if ( _pfds[i].revents & POLLIN ) {
+			if (_pfds[i].revents & POLLIN ) {
 				
 				int valread = recv( _pfds[i].fd, &_buffer, 1024, 0 );
 				
@@ -353,9 +382,9 @@ int	Server::start( void ) {
 				}
 			}
 
-			if ( _pfds[i].revents & POLLOUT )
+			if (i <= _num_open_fds &&  _pfds[i].revents & POLLOUT )
 				_polloutHandler(client);
-			if (_callCommands(client, cmd, i))
+			if (i <= _num_open_fds && _callCommands(client, cmd, i))
 				break ;
 		}
 	}

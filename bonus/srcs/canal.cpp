@@ -6,7 +6,7 @@
 /*   By: rdel-agu <rdel-agu@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/03/13 17:39:26 by dasereno          #+#    #+#             */
-/*   Updated: 2023/04/13 17:55:39 by rdel-agu         ###   ########.fr       */
+/*   Updated: 2023/04/16 18:56:27 by rdel-agu         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -23,6 +23,20 @@ Canal& Canal::operator=( const Canal& ref ) {
 bool Canal::operator==( const Canal& rhs ) {
 	return (this->_name == rhs.getName());
 }
+
+Canal::~Canal( void ) {
+    for (std::vector<Message *>::iterator it = waitingMessages.begin(); it != waitingMessages.end(); it++) {
+        delete *it;
+        *it = NULL;
+    }
+    waitingMessages.clear();
+    clients.clear();
+    _chanops.clear();
+    _banned.clear();
+    _voiced.clear();
+    _invited.clear();
+    return ;
+};
 
 void    Canal::deleteClient(Client *client)  {
     for (std::vector<Client *>::iterator it = clients.begin(); it != clients.end(); it++) {
@@ -106,8 +120,7 @@ void    Canal::printBanned(void) {
     }    
 }
 
-bool	Canal::isOp
-( std::string name ) { 
+bool	Canal::isOp( std::string name ) { 
     std::vector<Client *>::iterator	it = _chanops.begin();
     if (name == getOp().getNick())
         return true;

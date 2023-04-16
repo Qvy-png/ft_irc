@@ -3,63 +3,75 @@
 /*                                                        :::      ::::::::   */
 /*   client.cpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: dasereno <dasereno@student.42.fr>          +#+  +:+       +#+        */
+/*   By: rdel-agu <rdel-agu@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/02/22 16:05:30 by rdel-agu          #+#    #+#             */
-/*   Updated: 2023/04/15 18:34:58 by dasereno         ###   ########.fr       */
+/*   Updated: 2023/04/16 19:08:58 by rdel-agu         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "../includes/ft_irc.h"
 
-Client::Client( void ) : _hs( false ), _buffer(""), _hasTime( false ) { return ; }
+Client::Client(void) : _hs(false), _buffer(""), _hasTime(false), _modeI(false) { return; }
 
-Client::Client( int read ) :  _fd(read), _hs( false ), _buffer(""), _hasTime( false )  { return ; }
+Client::Client(int read) : _fd(read), _hs(false), _buffer(""), _hasTime(false), _modeI(false) { return; }
 
-Client::Client( const Client& ref ) { *this = ref; }
+Client::Client(const Client &ref) { *this = ref; }
 
-Client::~Client( void ) { return ; }
-
-Client& Client::operator=( const Client& ref ) {
-
-    if ( this == &ref )
-        return ( *this );
-    *this = ref;
-    return ( *this );
+Client::~Client(void)
+{
+    std::cout << "client " << _nick << " deleted " << std::endl;
+    _canals.clear();
+    _waitingMessages.clear();
+    return;
 }
 
-int Client::getFd( void ) { return( _fd ); }
+Client &Client::operator=(const Client &ref)
+{
 
-void Client::setPass( std::string str ) { _pass = str; }
+    if (this == &ref)
+        return (*this);
+    *this = ref;
+    return (*this);
+}
 
-std::string Client::getPass( void ) { return( _pass ); }
+int Client::getFd(void) { return (_fd); }
 
-void Client::setNick( std::string str ) { _nick = str; }
+void Client::setPass(std::string str) { _pass = str; }
 
-std::string Client::getNick( void ) { return( _nick ); }
+std::string Client::getPass(void) { return (_pass); }
 
-void Client::setFullName( std::string str ) { _fullName = str; }
+void Client::setNick(std::string str) { _nick = str; }
 
-std::string Client::getFullName( void ) { return( _fullName ); }
+std::string Client::getNick(void) { return (_nick); }
 
-void Client::setHost( std::string str ) { _host = str; }
+void Client::setFullName(std::string str) { _fullName = str; }
 
-std::string Client::getHost( void ) { return( _host ); }
+std::string Client::getFullName(void) { return (_fullName); }
 
-void Client::setBuffer( char* str ) { _buffer = str; } // ajouter le buffer si non vide
+void Client::setHost(std::string str) { _host = str; }
 
-void Client::addBuffer( char* str ) { _buffer += str; } // ajouter le buffer si non vide
+std::string Client::getHost(void) { return (_host); }
 
-std::string Client::getBuffer( void ) { return ( _buffer ); }
+void Client::setBuffer(char *str) { _buffer = str; } // ajouter le buffer si non vide
 
-void Client::setHs( bool hs ) { _hs = hs; }
+void Client::addBuffer(char *str) {
+    std::string tmp = _buffer;
+    _buffer.clear() ;
+    _buffer = tmp + str;
+    tmp.clear();
+ } // ajouter le buffer si non vide
 
-bool Client::getHs( void ) { return ( _hs ); }
+std::string Client::getBuffer(void) { return (_buffer); }
 
-void Client::setTime( std::time_t time ) { _time = time; }
+void Client::setHs(bool hs) { _hs = hs; }
 
-std::time_t Client::getTime( void ) { return ( _time ); }
+bool Client::getHs(void) { return (_hs); }
 
-void Client::setHasTime( bool hasTime ) { _hasTime = hasTime; }
+void Client::setTime(std::time_t time) { _time = time; }
 
-bool Client::getHasTime( void ) { return ( _hasTime ); }
+std::time_t Client::getTime(void) { return (_time); }
+
+void Client::setHasTime(bool hasTime) { _hasTime = hasTime; }
+
+bool Client::getHasTime(void) { return (_hasTime); }

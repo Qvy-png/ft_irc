@@ -3,15 +3,16 @@
 /*                                                        :::      ::::::::   */
 /*   ft_irc.h                                           :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: dasereno <dasereno@student.42.fr>          +#+  +:+       +#+        */
+/*   By: rdel-agu <rdel-agu@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/01/23 17:37:21 by rdel-agu          #+#    #+#             */
-/*   Updated: 2023/04/15 20:02:10 by dasereno         ###   ########.fr       */
+/*   Updated: 2023/04/16 18:24:58 by rdel-agu         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #ifndef FT_IRC_H
 # define FT_IRC_H
+extern bool quit;
 
 // libraries
 
@@ -35,6 +36,7 @@
 #include <string>
 #include <algorithm>
 #include <ctime>
+#include <ctype.h>
 
 // ~/includes/
 
@@ -47,6 +49,7 @@
 #include "commandManager.hpp"
 
 // data
+extern Server	*server;
 
 #define SERVERNAME "ft_irc"
 #define SERVER "127.0.0.1" 
@@ -57,6 +60,9 @@
 
 std::vector<std::string> split(std::string s, std::string delimiter);
 bool	str_isnum(std::string str);
+bool isValidNickname(const std::string& nickname);
+bool isValidChannelName(const std::string& channelName);
+bool validateMessage(const std::string& message);
 
 // macros
 

@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   message.hpp                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: dasereno <dasereno@student.42.fr>          +#+  +:+       +#+        */
+/*   By: rdel-agu <rdel-agu@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/03/13 15:16:33 by dasereno          #+#    #+#             */
-/*   Updated: 2023/04/12 17:32:58 by dasereno         ###   ########.fr       */
+/*   Updated: 2023/04/16 18:58:04 by rdel-agu         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -24,7 +24,10 @@ class Message {
 		Message( void );
 		Message (std::string msg, Client &sender): _message(msg), _sender(sender) { };
 		// Message( const Message& );
-		~Message( void ) { return ;};
+		~Message( void ) { 
+			clients.clear();
+			return ;
+		};
 
 		void		setMessage(std::string msg) { _message = msg; };
 		std::string	getMessage(void) { return (_message); };

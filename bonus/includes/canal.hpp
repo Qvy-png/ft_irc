@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   canal.hpp                                          :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: dasereno <dasereno@student.42.fr>          +#+  +:+       +#+        */
+/*   By: rdel-agu <rdel-agu@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/03/13 16:58:43 by dasereno          #+#    #+#             */
-/*   Updated: 2023/04/11 17:47:46 by dasereno         ###   ########.fr       */
+/*   Updated: 2023/04/16 18:55:38 by rdel-agu         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -57,7 +57,7 @@ class Canal {
 
 		Canal( std::string name, Client & op, CanalManager *cm ): _name(name), _pass(""), _op(op), _canalManager(cm), _topic(""), _tmTopic(0),
 		_modeO(false), _modeI(false), _modeT(false), _modeM(false), _modeN(false), _modeL(false), _modeB(false), _modeK(false) { _chanops.push_back(&op); };
-		~Canal( void ) { return ;};
+		~Canal( void );
 
 		std::string getName( void ) const { return (_name); };
 		void setName( std::string name ) { _name = name; };

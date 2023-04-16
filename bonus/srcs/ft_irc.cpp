@@ -6,7 +6,7 @@
 /*   By: rdel-agu <rdel-agu@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/02/03 14:12:48 by rdel-agu          #+#    #+#             */
-/*   Updated: 2023/04/16 19:26:32 by rdel-agu         ###   ########.fr       */
+/*   Updated: 2023/04/16 19:36:21 by rdel-agu         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -23,7 +23,6 @@ Server::Server( int port, std::string password ) : _num_open_fds(0), _addrlen(si
 Server::Server( const Server& ref ) { *this = ref; }
 
 Server::~Server( void ) {
-	std::cout << "bjr le amis je QUITEE" << std::endl;
 	// _clients.clear();
     for (std::vector<Client *>::iterator it = _clients.begin(); it != _clients.end(); it++) {
         delete *it;
@@ -353,8 +352,6 @@ int	Server::start( void ) {
 		
 		signal(SIGINT, Server::signal_callback_handler);
 
-		if (!quit)
-			std::cout << "JE DOIT QUITTER" << std::endl;
 		int poll_count = poll(_pfds, _num_open_fds + 1, 10);
 
 		if (poll_count == -1)

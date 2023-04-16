@@ -6,7 +6,7 @@
 /*   By: rdel-agu <rdel-agu@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/03/13 16:58:43 by dasereno          #+#    #+#             */
-/*   Updated: 2023/04/16 18:55:38 by rdel-agu         ###   ########.fr       */
+/*   Updated: 2023/04/16 19:33:51 by rdel-agu         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -96,7 +96,6 @@ class Canal {
 
 		void	addVoiced( Client *client ) {
 			if (!isVoiced(client)) {
-				std::cout << "Pushed" << std::endl;
 				_voiced.push_back(client);
 			}
 		}

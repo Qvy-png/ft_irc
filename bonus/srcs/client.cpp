@@ -6,7 +6,7 @@
 /*   By: rdel-agu <rdel-agu@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/02/22 16:05:30 by rdel-agu          #+#    #+#             */
-/*   Updated: 2023/04/16 19:08:58 by rdel-agu         ###   ########.fr       */
+/*   Updated: 2023/04/16 19:33:59 by rdel-agu         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -20,7 +20,6 @@ Client::Client(const Client &ref) { *this = ref; }
 
 Client::~Client(void)
 {
-    std::cout << "client " << _nick << " deleted " << std::endl;
     _canals.clear();
     _waitingMessages.clear();
     return;

@@ -6,7 +6,7 @@
 /*   By: rdel-agu <rdel-agu@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/04/12 16:24:36 by dasereno          #+#    #+#             */
-/*   Updated: 2023/04/16 18:49:48 by rdel-agu         ###   ########.fr       */
+/*   Updated: 2023/04/16 19:38:54 by rdel-agu         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -107,7 +107,6 @@ void	CommandManager::join(std::string str, Client *cli) {
 			return ;
 		}
 		canal = canalManager->CreateChannel(str, cli);
-		std::cout << "chanoper is : " << canal->getOp().getNick() << std::endl;
 		std::string users ("");
 		std::vector<Client *> nicknames = canal->getClients();
 		for (std::vector<Client *>::iterator it = nicknames.begin(); it != nicknames.end(); it++) {
@@ -118,29 +117,23 @@ void	CommandManager::join(std::string str, Client *cli) {
 				users.append(tmp->getNick() + " ");
 		}
 		cli->send_msg(RPL_NAMREPLY(cli->getNick(), canal->getName(), users));
-		std::cout << "RPL_NAMREPLY: " << RPL_NAMREPLY(cli->getNick(), canal->getName(), users) << std::endl;
 		cli->send_msg(RPL_ENDOFNAMES(cli->getNick(), canal->getName()));
-		std::cout << "RPL_ENDOFNAMES : " << RPL_ENDOFNAMES(cli->getNick(), canal->getName()) << std::endl;
 		canal->broadcast(RPL_JOIN(cli->getPrefix(), canal->getName()));
-		std::cout << "RPL_JOIN : " << RPL_JOIN(cli->getPrefix(), canal->getName()) << std::endl;
 		cli->send_msg(RPL_NOTOPIC(cli->getNick(), name));
 	}
 	if (canal->getModeK()) {
 		if (pass.size() != 0 && pass == canal->getPass()) { }
 		else {
 			cli->send_msg(ERR_BADCHANNELKEY(cli->getNick(), name));
-			std::cout << "pass tested = " << pass << std::endl;
 			return ;
 		}
 	}
 	if (canal->getModeB() && canal->isBanned(cli)) {
 		cli->send_msg(ERR_BANNEDFROMCHAN(cli->getNick(), canal->getName()));
-		std::cout << "YOU ARE BANNED" << std::endl;
 		return ;
 	}
 	if (canal->getModeI() && !canal->isInvited(cli->getNick())) {
 		cli->send_msg(ERR_INVITEONLYCHAN(cli->getNick(), canal->getName()));
-		std::cout << "You are not invited to this channel" << std::endl;
 		return ;
 	}
 
@@ -162,11 +155,8 @@ void	CommandManager::join(std::string str, Client *cli) {
 				users.append(tmp->getNick() + " ");
 		}
 		cli->send_msg(RPL_NAMREPLY(cli->getNick(), canal->getName(), users));
-		std::cout << "RPL_NAMREPLY: " << RPL_NAMREPLY(cli->getNick(), canal->getName(), users) << std::endl;
 		cli->send_msg(RPL_ENDOFNAMES(cli->getNick(), canal->getName()));
-		std::cout << "RPL_ENDOFNAMES : " << RPL_ENDOFNAMES(cli->getNick(), canal->getName()) << std::endl;
 		canal->broadcast(RPL_JOIN(cli->getPrefix(), canal->getName()));
-		std::cout << "RPL_JOIN : " << RPL_JOIN(cli->getPrefix(), canal->getName()) << std::endl;
 		if (canal->getTopic().size() > 0)
 			cli->send_msg(RPL_TOPIC(cli->getNick(), name, canal->getTopic()));
 		else
@@ -209,7 +199,6 @@ void	CommandManager::invite(std::string str, Client *cli) {
 		return ;
 	// :michou!~dasereno@shittyIRC INVITE dadou :#test
 	receiver->send_msg(":" + cli->getPrefix() + " INVITE " + cli->getNick() + " :" + canal->getName() + "\r\n");
-	std::cout << ":" + cli->getPrefix() + " INVITE " + receiver->getNick() + " :" + canal->getName() << std::endl;
 }
 
 void	CommandManager::mode(std::string str, Client *cli) {
@@ -238,7 +227,6 @@ void	CommandManager::mode(std::string str, Client *cli) {
 			return ;
 		}
 		for (int j = 0; args[1][j]; j++) {
-			std::cout << "ICI" << std::endl;
 			if (args[1][j] == '+') {
 				sign = true;
 				continue ;
@@ -262,10 +250,8 @@ void	CommandManager::mode(std::string str, Client *cli) {
 					}
 					canal->setPass(args[2]);
 					canal->setModeK(true);
-					std::cout << "Pass set to : " << args[2] << std::endl; 
 					block = true;
 					cli->send_msg(RPL_MODE(cli->getPrefix(), canal->getName(), "+k", args[2]));
-					std::cout << args[2] << std::endl;
 					break;
 				case 'b': // IF ARGS size == 2 => PRINT BANNED USERS
 					if (args.size() < 3) {
@@ -277,7 +263,6 @@ void	CommandManager::mode(std::string str, Client *cli) {
 					canal->setModeB(true);
 					cli->send_msg(RPL_MODE(cli->getPrefix(), canal->getName(), "+b", args[2]));
 					block = true;
-					std::cout << "mode B activated" << std::endl;
 					break ;
 				case 'o' : // IF ARGS size == 2 => PRINT OPERATOR USERS
 					if (args.size() < 3) {
@@ -293,10 +278,6 @@ void	CommandManager::mode(std::string str, Client *cli) {
 					break ;
 				case 'i' :
 					if (canal->getModeI()) {
-						std::cout << canal->getOp().getNick() << std::endl;
-						std::cout << cli->getNick() << std::endl;
-						std::cout << "yo c ici ca quitte" << std::endl;
-						std::cout << canal->isOp(cli) << std::endl;
 						break ;
 					}
 					canal->setModeI(true);
@@ -412,7 +393,6 @@ void	CommandManager::mode(std::string str, Client *cli) {
 			return ;
 		}
 			for (int j = 0; args[1][j]; j++) {
-			std::cout << "ICI" << std::endl;
 			if (args[1][j] == '+') {
 				sign = true;
 				continue ;
@@ -427,12 +407,6 @@ void	CommandManager::mode(std::string str, Client *cli) {
 					if (tmp->getModeI() || !_server->isOp(cli))
 						return ;
 					tmp->setModeI(true);
-					// 	std::cout << canal->getOp().getNick() << std::endl;
-					// 	std::cout << cli->getNick() << std::endl;
-					// 	std::cout << "yo c ici ca quitte" << std::endl;
-					// 	std::cout << canal->isOp(cli) << std::endl;
-					// 	break ;
-					// cli->setModeI(true);
 					cli->send_msg(RPL_MODE(cli->getPrefix(), tmp->getNick(), "+i", ""));
 					break ;
 				default:
@@ -446,11 +420,6 @@ void	CommandManager::mode(std::string str, Client *cli) {
 					if (tmp->getModeI() || !_server->isOp(cli))
 						return ;
 					tmp->setModeI(false);
-					// if (!canal->getModeI() || !canal->isOp(cli))
-					// 	break ;
-					// canal->setModeI(false);
-					// canal->resetInvited();
-					// cli->send_msg(RPL_MODE(cli->getPrefix(), canal->getName(), "-i", ""));
 					cli->send_msg(RPL_MODE(cli->getPrefix(), tmp->getNick(), "-i", ""));
 					break ;
 				default:
@@ -507,8 +476,6 @@ void	CommandManager::topic(std::string str, Client *cli) {
 	} else {
 		std::string channel = str.substr(0, str.find(":")- 1);
 		std::string topic = str.substr(str.find(":") + 1, str.size());
-		std::cout << "channel : " << channel << std::endl;
-		std::cout << "topic : " << topic << std::endl;
 		Canal *canal = canalManager->GetChannel(channel);
 		if (channel.size() == 0 || (channel[0] != '#' && channel[0] != '&') || !canal) {
 			cli->send_msg(ERR_NOSUCHCHANNEL(cli->getNick(), channel));
@@ -529,7 +496,6 @@ void	CommandManager::topic(std::string str, Client *cli) {
 
 void	CommandManager::part(std::string str, Client *cli) { // TO DO: ALL ERRORS // HANDLE MULTIPLE PART	
 	std::cout << "Client #" << cli->getNick() << " PART channel "<< str << std::endl;
-	std::cout << str << std::endl;
 	if (str.empty())
 	{
 		cli->send_msg(ERR_NEEDMOREPARAMS(cli->getNick(), "PART"));
@@ -540,7 +506,6 @@ void	CommandManager::part(std::string str, Client *cli) { // TO DO: ALL ERRORS /
 	CanalManager	*canalManager = _server->getCanalManager();
 	for (std::vector<std::string>::iterator it = channels.begin(); it != channels.end(); it++) {
 		std::string canalName = (*it);
-		std::cout << canalName << std::endl;
 		Canal *canal = canalManager->GetChannel(canalName);
 		if (!canal || (canal->getName()[0] != '#' && canal->getName()[0] != '&')) {
 			cli->send_msg(ERR_NOSUCHCHANNEL(cli->getNick(), canalName));
@@ -568,7 +533,7 @@ void	CommandManager::quit(int i) { // ERROR HANDLING???
 
 void	CommandManager::quit(Client *cli) { // ERROR HANDLING???
 	int	i = _server->getClientIndex(cli) + 1;
-	std::cout << "cient #" << i << " quit because bad pass" << std::endl;
+	std::cout << "Client #" << i << " quit because bad pass" << std::endl;
 	close( _server->getPfds(i).fd );
 	_server->eraseClient(i - 1);
 	// client.erase( client.begin() + i - 1 );
@@ -598,7 +563,7 @@ void	CommandManager::_privmsgClient(std::string msg, CanalManager *canalManager,
 	newCanal->pushClient(_server->getClient(receiver));
 	newCanal->waitingMessages.push_back(newMsg);
 	(*newCanal->waitingMessages.rbegin())->clients = newCanal->clients; 
-	std::cout << "Client :" << cli->getNick() << " send a message prive." << std::endl;
+	std::cout << "Client :" << cli->getNick() << " send a private msg." << std::endl;
 }
 
 void	CommandManager::privmsg(std::string str, Client *cli) {
@@ -607,13 +572,11 @@ void	CommandManager::privmsg(std::string str, Client *cli) {
 		return ;
 	}
 	std::string channel = str.substr(0, str.find(' '));
-	std::cout << "Channel(s) : " << channel << std::endl;
 	std::vector<std::string> canals = split (channel, ",");
 	for (std::vector<std::string>::iterator it = canals.begin(); it != canals.end(); it++) {
 		std::string tmp = (*it);
 		CanalManager	*canalManager = _server->getCanalManager();
 		Canal	*canal = canalManager->GetChannel(tmp);
-		std::cout << "channel = " << tmp << std::endl;
 		std::string msg = str.substr(str.find(':'), str.size());
 		if (tmp[0] == '#' && !canal) {
 			cli->send_msg(ERR_NOSUCHCHANNEL(cli->getNick(), tmp));
@@ -635,7 +598,6 @@ void	CommandManager::privmsg(std::string str, Client *cli) {
 		canal->waitingMessages.push_back(newMsg);
 		for (std::vector<Client *>::iterator it = canal->clients.begin(); it != canal->clients.end(); it++) {
 			Client *cli = (*it);
-			std::cout << "->" + cli->getNick() << std::endl;
 		}
 		(*canal->waitingMessages.rbegin())->clients = canal->clients;
 		
@@ -657,11 +619,6 @@ void	CommandManager::kick(std::string str, Client *cli) {
 		return ;
 	}
 	CanalManager *canalManager = _server->getCanalManager();
-	std::cout << str << std::endl;
-	std::cout << channel << std::endl;
-	std::cout << "(" << toKick << ")" << std::endl;
-	std::cout  << "(" << reason << ")" << std::endl;
-	std::cout << str.find(':') << std::endl;
 	Canal *canal = canalManager->GetChannel(channel);
 	if (canal == NULL)
 		return ;
@@ -675,7 +632,6 @@ void	CommandManager::kick(std::string str, Client *cli) {
 	}
 	for (std::vector<std::string>::iterator i = toKicks.begin(); i != toKicks.end(); i++) {
 		std::string kicked = (*i);
-		std::cout << kicked << std::endl;
 		if (!canal->hasClient(kicked)) {
 			cli->send_msg(ERR_USERNOTINCHANNEL(cli->getNick(), kicked, channel));
 			continue ;
@@ -698,7 +654,6 @@ void	CommandManager::kick(std::string str, Client *cli) {
 void	CommandManager::oper(std::string str, Client *cli) {
 	std::string	name = str.substr(0, str.find(' '));
 	std::string pass = str.substr(str.find(' ') + 1, str.size());
-	std::cout << name << " : " << pass << std::endl;
 	if (str.empty() || pass.empty() || name.empty()) {
 		cli->send_msg(ERR_NEEDMOREPARAMS(cli->getNick(), "OPER"));
 		return ;
@@ -707,7 +662,6 @@ void	CommandManager::oper(std::string str, Client *cli) {
 		Client *tmp = _server->getClient(name);
 		if (tmp != NULL) {
 			tmp->setOp(true);
-			std::cout << "op state : " << tmp->getOp() << std::endl;
 			_server->addOp(tmp);
 			tmp->send_msg(RPL_YOUREOPER(_server->getLocalhost()));
 			return ;
@@ -732,7 +686,7 @@ void	CommandManager::_noticeClient(std::string msg, CanalManager *canalManager, 
 	newCanal->pushClient(_server->getClient(receiver));
 	newCanal->waitingMessages.push_back(newMsg);
 	(*newCanal->waitingMessages.rbegin())->clients = newCanal->clients; 
-	std::cout << "Client :" << cli->getNick() << " send a message prive." << std::endl;
+	std::cout << "Client :" << cli->getNick() << " send a private notice." << std::endl;
 }
 
 void	CommandManager::notice(std::string str, Client *cli) {
@@ -741,13 +695,11 @@ void	CommandManager::notice(std::string str, Client *cli) {
 		return ;
 	}
 	std::string channel = str.substr(0, str.find(' '));
-	std::cout << "Channel(s) : " << channel << std::endl;
 	std::vector<std::string> canals = split (channel, ",");
 	for (std::vector<std::string>::iterator it = canals.begin(); it != canals.end(); it++) {
 		std::string tmp = (*it);
 		CanalManager	*canalManager = _server->getCanalManager();
 		Canal	*canal = canalManager->GetChannel(tmp);
-		std::cout << "channel = " << tmp << std::endl;
 		std::string msg = str.substr(str.find(':'), str.size());
 		if (tmp[0] == '#' && !canal) {
 			continue ;
@@ -765,12 +717,11 @@ void	CommandManager::notice(std::string str, Client *cli) {
 		canal->waitingMessages.push_back(newMsg);
 		for (std::vector<Client *>::iterator it = canal->clients.begin(); it != canal->clients.end(); it++) {
 			Client *cli = (*it);
-			std::cout << "->" + cli->getNick() << std::endl;
 		}
 		(*canal->waitingMessages.rbegin())->clients = canal->clients; 
 		
 	}
-	std::cout << "Client :" << cli->getNick() << " send a message." << std::endl;
+	std::cout << "Client :" << cli->getNick() << " send a notice." << std::endl;
 }
 
 void	CommandManager::whois(std::string str, Client *cli) {
@@ -784,11 +735,6 @@ void	CommandManager::whois(std::string str, Client *cli) {
 			std::string requesterName = cli->getNick() + "!" + cli->getFullName() + "@" + cli->getHost();
 			std::string nick = tmp->getNick();
 			std::string fullName = tmp->getFullName();
-			// std::cout << tmp->getFullName() << " et " << client[i-1]->getNick() << std::endl;
-			std::cout << RPL_WHOISUSER( requesterName, cli->getNick(), nick, name, tmp->getHost(), fullName ) << std::endl;
-			std::cout << RPL_WHOISSERVER( requesterName, cli->getNick(), tmp->getNick(), requesterName, "This server") << std::endl;
-			std::cout << RPL_ENDOFWHOIS( name, str) << std::endl;
-
 			cli->send_msg( RPL_WHOISUSER( requesterName, cli->getNick(), nick, name, tmp->getHost(), fullName ) + RPL_WHOISSERVER( requesterName, cli->getNick(), tmp->getNick(), requesterName, "This server") + RPL_ENDOFWHOIS( name, str));
 		}
 		j++;

@@ -6,7 +6,7 @@
 /*   By: rdel-agu <rdel-agu@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/02/03 14:12:48 by rdel-agu          #+#    #+#             */
-/*   Updated: 2023/04/16 18:44:52 by rdel-agu         ###   ########.fr       */
+/*   Updated: 2023/04/16 19:39:20 by rdel-agu         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -23,7 +23,6 @@ Server::Server( int port, std::string password ) : _num_open_fds(0), _addrlen(si
 Server::Server( const Server& ref ) { *this = ref; }
 
 Server::~Server( void ) {
-	std::cout << "bjr le amis je QUITEE" << std::endl;
 	// _clients.clear();
     for (std::vector<Client *>::iterator it = _clients.begin(); it != _clients.end(); it++) {
         delete *it;
@@ -283,7 +282,6 @@ int	Server::_polloutHandler(Client *client) {
 		for (std::vector<Message *>::iterator it_msg = tmp->waitingMessages.begin(); it_msg != tmp->waitingMessages.end(); it_msg++) {
 			Message *msg = (*it_msg);
 			if (msg->isClient(client) && msg->getSender().getNick() != client->getNick()) {
-				std::cout << "msg = " << msg->getMessage() << std::endl;
 				// if (tmp->getName()[0] == '#') {
 					// std::cout << "ici mec " << std::endl; 
 					client->send_msg(msg->getMessage());
@@ -322,8 +320,6 @@ int	Server::start( void ) {
 		
 		signal(SIGINT, Server::signal_callback_handler);
 
-		if (!quit)
-			std::cout << "JE DOIT QUITTER" << std::endl;
 		int poll_count = poll(_pfds, _num_open_fds + 1, 10);
 
 		if (poll_count == -1)

@@ -6,7 +6,7 @@
 /*   By: rdel-agu <rdel-agu@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/04/12 16:24:36 by dasereno          #+#    #+#             */
-/*   Updated: 2023/04/16 19:37:10 by rdel-agu         ###   ########.fr       */
+/*   Updated: 2023/04/16 19:54:05 by rdel-agu         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -596,9 +596,6 @@ void	CommandManager::privmsg(std::string str, Client *cli) {
 			return ;
 		Message *newMsg = new Message (":" + cli->getNick() + " PRIVMSG " + tmp + " " + msg+ "\r\n", *cli);
 		canal->waitingMessages.push_back(newMsg);
-		for (std::vector<Client *>::iterator it = canal->clients.begin(); it != canal->clients.end(); it++) {
-			Client *cli = (*it);
-		}
 		(*canal->waitingMessages.rbegin())->clients = canal->clients;
 		
 	}
@@ -715,9 +712,6 @@ void	CommandManager::notice(std::string str, Client *cli) {
 		}
 		Message *newMsg = new Message (":" + cli->getNick() + " NOTICE " + tmp + " " + msg+ "\r\n", *cli);
 		canal->waitingMessages.push_back(newMsg);
-		for (std::vector<Client *>::iterator it = canal->clients.begin(); it != canal->clients.end(); it++) {
-			Client *cli = (*it);
-		}
 		(*canal->waitingMessages.rbegin())->clients = canal->clients; 
 		
 	}

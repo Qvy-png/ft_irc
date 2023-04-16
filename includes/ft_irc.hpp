@@ -6,7 +6,7 @@
 /*   By: rdel-agu <rdel-agu@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/01/23 17:48:31 by rdel-agu          #+#    #+#             */
-/*   Updated: 2023/04/16 18:52:07 by rdel-agu         ###   ########.fr       */
+/*   Updated: 2023/04/16 19:51:56 by rdel-agu         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -79,7 +79,7 @@ class Server {
 		
 		std::vector<Client *>	getClients(void) { return _clients; };
 		void			pushClient(Client *client) { _clients.push_back(client); };
-		void			eraseClient(int pos) { _clients.erase(_clients.begin() + pos); };
+		void			eraseClient(int pos);
 		size_t			getClientSize(void) { return _clients.size(); };
 		bool			isClient(Client *cli );
 		bool			isClient(std::string cli );

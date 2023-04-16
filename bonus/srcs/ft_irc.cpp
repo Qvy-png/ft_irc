@@ -6,7 +6,7 @@
 /*   By: rdel-agu <rdel-agu@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/02/03 14:12:48 by rdel-agu          #+#    #+#             */
-/*   Updated: 2023/04/16 19:36:21 by rdel-agu         ###   ########.fr       */
+/*   Updated: 2023/04/16 19:53:01 by rdel-agu         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -53,6 +53,11 @@ void Server::signal_callback_handler( int signum ) {
       		// delete (*it);
 	}
 }
+
+void	Server::eraseClient(int pos) {
+	delete _clients[pos];
+	_clients.erase(_clients.begin() + pos);
+};
 
 void    Server::setPort( int port ) { _port = port; }
 

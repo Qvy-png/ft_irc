@@ -1,2 +1,2 @@
 # ft_irc
-Lightweight-ish IRC server, built in C++
+Robust and lightweight C++ IRC server, running off of local network, for private and corporate use.

@@ -6,11 +6,11 @@
 #    By: dasereno <dasereno@student.42.fr>          +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2023/01/23 17:29:46 by rdel-agu          #+#    #+#              #
-#    Updated: 2023/04/12 18:07:56 by dasereno         ###   ########.fr        #
+#    Updated: 2023/04/13 15:44:24 by rdel-agu         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
-NAME = ircserv
+NAME = ircserv_bonus
 
 CXX = c++
 

@@ -6,7 +6,7 @@
 /*   By: rdel-agu <rdel-agu@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/02/03 14:12:48 by rdel-agu          #+#    #+#             */
-/*   Updated: 2023/04/16 19:52:37 by rdel-agu         ###   ########.fr       */
+/*   Updated: 2023/04/16 19:53:01 by rdel-agu         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -53,6 +53,11 @@ void Server::signal_callback_handler( int signum ) {
       		// delete (*it);
 	}
 }
+
+void	Server::eraseClient(int pos) {
+	delete _clients[pos];
+	_clients.erase(_clients.begin() + pos);
+};
 
 void    Server::setPort( int port ) { _port = port; }
 
@@ -271,10 +276,34 @@ int	Server::_callCommands(Client *client, CommandManager *cmd, int i) {
 	return (0);
 }
 
+bool isFeur(std::string &sent) {
+	
+    std::string lowerSent;
+    std::transform(sent.begin(), sent.end(), std::back_inserter(lowerSent), ::tolower);
+    const std::string word = "quoi";
+    const std::string delimiters = " .,;:!?\n\t\r";
+    std::size_t pos = lowerSent.rfind(word);
+
+    while (pos != std::string::npos) {
+
+        const std::size_t endpos = pos + word.length();
+        if (endpos == lowerSent.length() || delimiters.find(lowerSent[endpos]) != std::string::npos) {
+            return true;
+        }
+        pos = lowerSent.rfind(word, pos - 1);
+    }
+    return false;
+}
+
+bool isNotice(std::string &sent) {
+   	return !(sent.find("NOTICE") == sent.npos);
+}
+
+
 int	Server::_polloutHandler(Client *client) {
 					// LIMITE DE SEND DE 1024CHAR;
 	std::map<std::string, Canal *> canals = _canalManager->GetChannels();
-
+	int i = 0;
 	for (std::map<std::string, Canal *>::iterator it = canals.begin(); it != canals.end(); it++) {
 		Canal *tmp = (*it).second;
 		if (!tmp->hasClient(client))
@@ -282,9 +311,17 @@ int	Server::_polloutHandler(Client *client) {
 		for (std::vector<Message *>::iterator it_msg = tmp->waitingMessages.begin(); it_msg != tmp->waitingMessages.end(); it_msg++) {
 			Message *msg = (*it_msg);
 			if (msg->isClient(client) && msg->getSender().getNick() != client->getNick()) {
+				std::cout << "msg = " << msg->getMessage() << std::endl;
+				std::string str = msg->getMessage();
 				// if (tmp->getName()[0] == '#') {
 					// std::cout << "ici mec " << std::endl; 
 					client->send_msg(msg->getMessage());
+					if (isFeur(str) && !isNotice(str)) {
+						
+						client->send_msg(":bot PRIVMSG " + tmp->getName() + " " + "feur lol" + "\r\n");
+						if ( i == 0 )
+							msg->getSender().send_msg(":bot PRIVMSG " + tmp->getName() + " " + "feur lol" + "\r\n"), i++;
+					}
 					// if (tmp->isOp(msg->getSender().getNick()))
 					// 	client->send_msg(":" + msg->getSender().getNick() + " PRIVMSG " + tmp->getName() + " " + msg->getMessage() + "\r\n");
 					// else
@@ -312,11 +349,6 @@ int	Server::_polloutHandler(Client *client) {
 	}
 	return (0);
 }
-
-void	Server::eraseClient(int pos) {
-	delete _clients[pos];
-	_clients.erase(_clients.begin() + pos);
-};
 
 int	Server::start( void ) {
 	CommandManager	*cmd = getCommandManager();
